@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Báo cáo phân tích hiệu suất nhân sự</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.12.1/cdn.min.js" defer></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Be Vietnam Pro", system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+      }
+
+      .glass {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(6px);
+      }
+
+      .gradient-border {
+        position: relative;
+        border-radius: 1rem;
+        overflow: hidden;
+      }
+
+      .gradient-border::before {
+        content: "";
+        position: absolute;
+        inset: -2px;
+        background: linear-gradient(135deg, #6366f1, #14b8a6, #8b5cf6);
+        z-index: -1;
+        border-radius: inherit;
+        filter: blur(0.5px);
+      }
+    </style>
+  </head>
+  <body class="bg-slate-100 text-slate-900">
+    <div class="bg-gradient-to-br from-indigo-100 via-white to-cyan-100 min-h-screen">
+      <main class="max-w-6xl mx-auto px-6 py-12 space-y-12">
+        <header class="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+          <div class="space-y-2">
+            <p class="inline-flex items-center gap-2 text-indigo-700 font-semibold uppercase tracking-wide text-xs">
+              <span id="pageTag">Báo cáo nội bộ</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                />
+              </svg>
+            </p>
+            <h1 id="pageTitle" class="text-3xl md:text-4xl font-bold text-slate-900">
+              Báo cáo phân tích hiệu suất nhân sự 2023
+            </h1>
+            <p id="pageSubtitle" class="text-slate-600 max-w-3xl">
+              Tổng hợp số liệu đánh giá hiệu suất, điểm mạnh và định hướng phát triển của đội ngũ nhân sự dựa trên bảng dữ liệu nội bộ năm 2023.
+            </p>
+            <p id="lastUpdated" class="text-sm text-slate-500">
+              Cập nhật lần cuối: Tháng 12 năm 2023
+            </p>
+          </div>
+          <div class="glass gradient-border p-1 rounded-2xl shadow-xl">
+            <div class="bg-white rounded-[1.1rem] px-4 py-3 flex items-center gap-2">
+              <span class="text-xs font-semibold text-slate-500" id="languageLabel">Ngôn ngữ</span>
+              <div class="flex gap-2">
+                <button
+                  id="btnVi"
+                  class="lang-btn px-3 py-1.5 text-sm font-semibold rounded-xl bg-indigo-500 text-white shadow"
+                  data-lang="vi"
+                >
+                  Tiếng Việt
+                </button>
+                <button
+                  id="btnJa"
+                  class="lang-btn px-3 py-1.5 text-sm font-semibold rounded-xl text-indigo-600 hover:bg-indigo-100"
+                  data-lang="ja"
+                >
+                  日本語
+                </button>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <section class="glass gradient-border p-6 md:p-8 space-y-6">
+          <div>
+            <h2 id="summaryTitle" class="text-2xl font-semibold text-slate-900">
+              Tổng quan hiệu suất
+            </h2>
+            <p id="summaryDescription" class="text-slate-600 max-w-3xl">
+              Nhìn nhanh các chỉ số nổi bật giúp xác định xu hướng hiệu suất chung của toàn bộ đội ngũ.
+            </p>
+          </div>
+          <div id="summaryCards" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"></div>
+        </section>
+
+        <section class="glass gradient-border p-6 md:p-8 space-y-6">
+          <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h2 id="filtersTitle" class="text-2xl font-semibold text-slate-900">
+                Bộ lọc dữ liệu
+              </h2>
+              <p id="filtersSubtitle" class="text-slate-600 max-w-2xl">
+                Lọc theo phòng ban, mức đánh giá hoặc tìm kiếm theo tên để tập trung vào nhóm nhân sự cần phân tích.
+              </p>
+            </div>
+            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <label class="flex flex-col text-sm text-slate-500">
+                <span id="searchLabel" class="mb-1 font-semibold text-slate-600">Tìm kiếm</span>
+                <input
+                  id="searchInput"
+                  type="search"
+                  class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-700 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring focus:ring-indigo-200"
+                  placeholder="Tìm theo tên hoặc mã nhân viên"
+                />
+              </label>
+              <label class="flex flex-col text-sm text-slate-500">
+                <span id="departmentLabel" class="mb-1 font-semibold text-slate-600">Phòng ban</span>
+                <select
+                  id="departmentFilter"
+                  class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-700 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring focus:ring-indigo-200"
+                ></select>
+              </label>
+              <label class="flex flex-col text-sm text-slate-500">
+                <span id="ratingLabel" class="mb-1 font-semibold text-slate-600">Mức đánh giá</span>
+                <select
+                  id="ratingFilter"
+                  class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-700 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring focus:ring-indigo-200"
+                ></select>
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <section class="glass gradient-border p-6 md:p-8 space-y-6">
+          <div class="space-y-2">
+            <h2 id="tableTitle" class="text-2xl font-semibold text-slate-900">
+              Bảng dữ liệu chi tiết
+            </h2>
+            <p id="tableSubtitle" class="text-slate-600 max-w-3xl">
+              Danh sách đầy đủ thông tin nhân sự bao gồm mức độ hoàn thành chỉ tiêu, kết quả đánh giá, điểm mạnh và định hướng phát triển trong năm tới.
+            </p>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-200 text-sm">
+              <thead class="bg-slate-50">
+                <tr id="tableHeaderRow" class="text-left text-xs font-semibold uppercase tracking-wide text-slate-500"></tr>
+              </thead>
+              <tbody id="tableBody" class="divide-y divide-slate-100 bg-white"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="grid gap-6 lg:grid-cols-2">
+          <div class="glass gradient-border p-6 md:p-8 space-y-6">
+            <div class="space-y-2">
+              <h2 id="chartsTitle" class="text-2xl font-semibold text-slate-900">
+                Biểu đồ trực quan
+              </h2>
+              <p id="chartsSubtitle" class="text-slate-600">
+                So sánh mức độ hoàn thành trung bình theo phòng ban và tỉ lệ các mức đánh giá để xác định khu vực nổi bật cần chú ý.
+              </p>
+            </div>
+            <div class="space-y-6">
+              <div class="bg-white/80 rounded-2xl p-4 shadow-sm">
+                <h3 id="completionChartTitle" class="text-sm font-semibold text-slate-600 mb-3">
+                  Trung bình hoàn thành theo phòng ban
+                </h3>
+                <canvas id="completionChart" height="240"></canvas>
+              </div>
+              <div class="bg-white/80 rounded-2xl p-4 shadow-sm">
+                <h3 id="ratingChartTitle" class="text-sm font-semibold text-slate-600 mb-3">
+                  Tỉ lệ các mức đánh giá
+                </h3>
+                <canvas id="ratingChart" height="240"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass gradient-border p-6 md:p-8 space-y-6">
+            <div class="space-y-2">
+              <h2 id="insightsTitle" class="text-2xl font-semibold text-slate-900">
+                Nhận định nổi bật
+              </h2>
+              <p id="insightsSubtitle" class="text-slate-600">
+                Diễn giải ngắn gọn những điểm cần chú ý để hỗ trợ ra quyết định phát triển nhân sự năm 2024.
+              </p>
+            </div>
+            <div class="space-y-4">
+              <div class="bg-white/80 rounded-2xl border border-slate-100 p-5 shadow-sm">
+                <h3 id="strengthsTitle" class="text-sm font-semibold uppercase tracking-wide text-indigo-500">
+                  Điểm sáng
+                </h3>
+                <ul id="strengthsList" class="mt-3 space-y-2 text-sm text-slate-600 list-disc list-inside"></ul>
+              </div>
+              <div class="bg-white/80 rounded-2xl border border-slate-100 p-5 shadow-sm">
+                <h3 id="focusTitle" class="text-sm font-semibold uppercase tracking-wide text-amber-500">
+                  Trọng tâm cải thiện
+                </h3>
+                <ul id="focusList" class="mt-3 space-y-2 text-sm text-slate-600 list-disc list-inside"></ul>
+              </div>
+              <div class="bg-white/80 rounded-2xl border border-slate-100 p-5 shadow-sm">
+                <h3 id="nextStepsTitle" class="text-sm font-semibold uppercase tracking-wide text-emerald-500">
+                  Hành động đề xuất
+                </h3>
+                <ul id="nextStepsList" class="mt-3 space-y-2 text-sm text-slate-600 list-disc list-inside"></ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <footer class="pb-12 text-xs text-slate-500 text-center">
+          <p id="footerNote">
+            Báo cáo được tổng hợp nhằm hỗ trợ bộ phận nhân sự và ban điều hành xây dựng kế hoạch phát triển nhân sự năm 2024.
+          </p>
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      const employees = [
+        {
+          id: 1,
+          code: "NV001",
+          name: "Trần Minh Hoàng",
+          gender: "male",
+          birth: "1987-04-12",
+          position: {
+            vi: "Trưởng phòng kinh doanh",
+            ja: "営業部長",
+          },
+          department: "sales",
+          email: "hoang.tm@aurora.vn",
+          phone: "0901 234 567",
+          completion: 98,
+          rating: "outstanding",
+          strengths: {
+            vi: "Dẫn dắt đội ngũ bán hàng duy trì doanh thu vượt 20% chỉ tiêu suốt 4 quý liên tiếp.",
+            ja: "営業チームを率いて4四半期連続で目標比120%の売上を達成。",
+          },
+          development: {
+            vi: "Đề xuất tham gia khóa lãnh đạo chiến lược để mở rộng mạng lưới khách hàng khu vực phía Nam.",
+            ja: "南部市場向けの顧客ネットワーク拡大に向け、戦略的リーダーシップ研修への参加を提案。",
+          },
+        },
+        {
+          id: 2,
+          code: "NV002",
+          name: "Nguyễn Thị Hạnh",
+          gender: "female",
+          birth: "1990-08-23",
+          position: {
+            vi: "Trưởng nhóm tiếp thị nội dung",
+            ja: "コンテンツマーケティングリーダー",
+          },
+          department: "marketing",
+          email: "hanh.nt@aurora.vn",
+          phone: "0902 345 678",
+          completion: 92,
+          rating: "outstanding",
+          strengths: {
+            vi: "Thiết kế chiến dịch digital tăng 35% lượng khách hàng tiềm năng và xây dựng thương hiệu ổn định.",
+            ja: "デジタルキャンペーンでリード数を35%向上させ、ブランド認知を安定化。",
+          },
+          development: {
+            vi: "Ưu tiên chương trình đào tạo phân tích dữ liệu marketing chuyên sâu để tối ưu hiệu suất kênh.",
+            ja: "チャネル最適化のため、高度なマーケティングデータ分析研修を優先受講。",
+          },
+        },
+        {
+          id: 3,
+          code: "NV003",
+          name: "Lê Quốc Bảo",
+          gender: "male",
+          birth: "1992-02-10",
+          position: {
+            vi: "Kỹ sư giải pháp",
+            ja: "ソリューションエンジニア",
+          },
+          department: "it",
+          email: "bao.lq@aurora.vn",
+          phone: "0903 456 789",
+          completion: 88,
+          rating: "good",
+          strengths: {
+            vi: "Triển khai thành công 3 dự án ERP với tỷ lệ bàn giao đúng hạn 100%.",
+            ja: "ERPプロジェクト3件を全て期限内で納品。",
+          },
+          development: {
+            vi: "Khuyến khích học chứng chỉ cloud architect để mở rộng năng lực triển khai hạ tầng hybrid.",
+            ja: "ハイブリッドインフラ構築力強化のため、クラウドアーキテクト認定の取得を推奨。",
+          },
+        },
+        {
+          id: 4,
+          code: "NV004",
+          name: "Phạm Thu Trang",
+          gender: "female",
+          birth: "1989-11-04",
+          position: {
+            vi: "Chuyên viên nhân sự",
+            ja: "人事スペシャリスト",
+          },
+          department: "hr",
+          email: "trang.pt@aurora.vn",
+          phone: "0904 567 890",
+          completion: 91,
+          rating: "outstanding",
+          strengths: {
+            vi: "Hoàn thiện khung năng lực mới và triển khai thành công chương trình gắn kết nhân viên.",
+            ja: "新しい能力フレームワークを完成させ、従業員エンゲージメント施策を成功裏に実施。",
+          },
+          development: {
+            vi: "Tham gia khóa đào tạo phân tích nhân sự để nâng cao dự báo nhu cầu nhân lực.",
+            ja: "人事アナリティクス研修に参加し、人員需要予測力を向上。",
+          },
+        },
+        {
+          id: 5,
+          code: "NV005",
+          name: "Đỗ Văn Khánh",
+          gender: "male",
+          birth: "1985-06-18",
+          position: {
+            vi: "Trưởng nhóm kế toán",
+            ja: "会計チームリーダー",
+          },
+          department: "finance",
+          email: "khanh.dv@aurora.vn",
+          phone: "0905 678 901",
+          completion: 86,
+          rating: "good",
+          strengths: {
+            vi: "Đảm bảo tỷ lệ sai sót báo cáo tài chính dưới 0,5% và tối ưu quy trình kiểm soát chi phí.",
+            ja: "財務報告の誤差率を0.5%未満に抑え、コスト管理プロセスを最適化。",
+          },
+          development: {
+            vi: "Đề nghị đào tạo nâng cao IFRS và kỹ năng tự động hóa báo cáo để chuẩn bị chuyển đổi hệ thống.",
+            ja: "IFRS高度研修とレポート自動化スキルを強化し、システム移行に備える。",
+          },
+        },
+        {
+          id: 6,
+          code: "NV006",
+          name: "Bùi Lan Anh",
+          gender: "female",
+          birth: "1993-09-01",
+          position: {
+            vi: "Chuyên viên chăm sóc khách hàng",
+            ja: "カスタマーケアスペシャリスト",
+          },
+          department: "customer",
+          email: "anh.bl@aurora.vn",
+          phone: "0906 789 012",
+          completion: 80,
+          rating: "fair",
+          strengths: {
+            vi: "Duy trì chỉ số hài lòng khách hàng (CSAT) ở mức 4,6/5 trong 12 tháng.",
+            ja: "過去12か月で顧客満足度(CSAT)4.6/5を維持。",
+          },
+          development: {
+            vi: "Ưu tiên đào tạo giải quyết khiếu nại nâng cao và kỹ năng viết phản hồi chuyên nghiệp.",
+            ja: "高度なクレーム対応とプロフェッショナルな返信ライティング研修を優先。",
+          },
+        },
+        {
+          id: 7,
+          code: "NV007",
+          name: "Vũ Minh Quân",
+          gender: "male",
+          birth: "1994-12-15",
+          position: {
+            vi: "Nhân viên kinh doanh",
+            ja: "営業担当",
+          },
+          department: "sales",
+          email: "quan.vm@aurora.vn",
+          phone: "0907 890 123",
+          completion: 84,
+          rating: "fair",
+          strengths: {
+            vi: "Mở rộng thành công 18 khách hàng SME mới và duy trì tỷ lệ giữ chân 92%.",
+            ja: "新規SME顧客18社を開拓し、継続率92%を維持。",
+          },
+          development: {
+            vi: "Cần cải thiện kỹ năng dự báo pipeline và kỹ thuật chốt giao dịch phức tạp.",
+            ja: "パイプライン予測力と複雑な商談クロージングスキルの強化が必要。",
+          },
+        },
+        {
+          id: 8,
+          code: "NV008",
+          name: "Hồ Nhật Linh",
+          gender: "female",
+          birth: "1996-03-27",
+          position: {
+            vi: "Nhà phân tích dữ liệu",
+            ja: "データアナリスト",
+          },
+          department: "it",
+          email: "linh.hn@aurora.vn",
+          phone: "0908 901 234",
+          completion: 90,
+          rating: "good",
+          strengths: {
+            vi: "Xây dựng dashboard realtime cho ban điều hành, giảm 40% thời gian tổng hợp báo cáo.",
+            ja: "経営層向けのリアルタイムダッシュボードを構築し、レポート集約時間を40%削減。",
+          },
+          development: {
+            vi: "Đề xuất tham gia khóa machine learning ứng dụng để nâng cao mô hình dự báo doanh thu.",
+            ja: "収益予測モデル向上のため、応用機械学習講座への参加を提案。",
+          },
+        },
+        {
+          id: 9,
+          code: "NV009",
+          name: "Tạ Đức Long",
+          gender: "male",
+          birth: "1988-05-07",
+          position: {
+            vi: "Kỹ sư hạ tầng",
+            ja: "インフラエンジニア",
+          },
+          department: "it",
+          email: "long.td@aurora.vn",
+          phone: "0909 012 345",
+          completion: 78,
+          rating: "average",
+          strengths: {
+            vi: "Bảo trì hệ thống 99,8% uptime và hoàn tất 14 yêu cầu tối ưu chi phí hạ tầng.",
+            ja: "システム稼働率99.8%を維持し、インフラコスト最適化案件14件を完了。",
+          },
+          development: {
+            vi: "Cần bổ sung kiến thức tự động hóa DevOps và quản lý bảo mật nền tảng cloud.",
+            ja: "DevOps自動化とクラウドセキュリティ管理の知識補強が求められる。",
+          },
+        },
+        {
+          id: 10,
+          code: "NV010",
+          name: "Lương Bảo Ngọc",
+          gender: "female",
+          birth: "1995-01-19",
+          position: {
+            vi: "Chuyên viên thiết kế sáng tạo",
+            ja: "クリエイティブデザイナー",
+          },
+          department: "marketing",
+          email: "ngoc.lb@aurora.vn",
+          phone: "0910 123 456",
+          completion: 82,
+          rating: "fair",
+          strengths: {
+            vi: "Tái định vị bộ nhận diện thương hiệu, nâng 45% mức độ ghi nhớ từ khảo sát khách hàng.",
+            ja: "ブランドアイデンティティを再構築し、顧客想起率を45%向上。",
+          },
+          development: {
+            vi: "Khuyến khích tham gia workshop sáng tạo đa phương tiện và quản trị chiến dịch tích hợp.",
+            ja: "マルチメディアクリエイティブと統合キャンペーン運用のワークショップ参加を推奨。",
+          },
+        },
+        {
+          id: 11,
+          code: "NV011",
+          name: "Nguyễn Tuấn Phong",
+          gender: "male",
+          birth: "1991-07-30",
+          position: {
+            vi: "Quản lý dự án công nghệ",
+            ja: "テクノロジープロジェクトマネージャー",
+          },
+          department: "it",
+          email: "phong.nt@aurora.vn",
+          phone: "0911 234 567",
+          completion: 94,
+          rating: "outstanding",
+          strengths: {
+            vi: "Điều phối chương trình chuyển đổi số toàn công ty với ROI đạt 165% sau 9 tháng.",
+            ja: "全社デジタルトランスフォーメーションを統括し、9か月でROI165%を達成。",
+          },
+          development: {
+            vi: "Đề xuất đào tạo quản trị danh mục dự án để tối ưu phân bổ nguồn lực đa dự án.",
+            ja: "複数プロジェクトのリソース配分最適化に向け、ポートフォリオマネジメント研修を提案。",
+          },
+        },
+        {
+          id: 12,
+          code: "NV012",
+          name: "Trần Hải Yến",
+          gender: "female",
+          birth: "1997-12-05",
+          position: {
+            vi: "Chuyên viên phân tích kinh doanh",
+            ja: "ビジネスアナリスト",
+          },
+          department: "sales",
+          email: "yen.th@aurora.vn",
+          phone: "0912 345 678",
+          completion: 76,
+          rating: "needs_improvement",
+          strengths: {
+            vi: "Xây dựng bộ báo cáo pipeline chuẩn hóa cho khối kinh doanh, hỗ trợ dự báo doanh thu hàng tuần.",
+            ja: "営業部向けに標準化されたパイプラインレポートを構築し、週次収益予測を支援。",
+          },
+          development: {
+            vi: "Cần kèm cặp chuyên sâu về phân tích hành vi khách hàng và kỹ năng trình bày insight.",
+            ja: "顧客行動分析とインサイト提示スキルの集中メンタリングが必要。",
+          },
+        },
+      ];
+
+      const translations = {
+        vi: {
+          pageTag: "Báo cáo nội bộ",
+          pageTitle: "Báo cáo phân tích hiệu suất nhân sự 2023",
+          pageSubtitle:
+            "Tổng hợp số liệu đánh giá hiệu suất, điểm mạnh và định hướng phát triển của đội ngũ nhân sự dựa trên bảng dữ liệu nội bộ năm 2023.",
+          lastUpdated: "Cập nhật lần cuối: Tháng 12 năm 2023",
+          languageLabel: "Ngôn ngữ",
+          languageButton: { vi: "Tiếng Việt", ja: "Tiếng Nhật" },
+          summaryTitle: "Tổng quan hiệu suất",
+          summaryDescription:
+            "Nhìn nhanh các chỉ số nổi bật giúp xác định xu hướng hiệu suất chung của toàn bộ đội ngũ.",
+          filtersTitle: "Bộ lọc dữ liệu",
+          filtersSubtitle:
+            "Lọc theo phòng ban, mức đánh giá hoặc tìm kiếm theo tên để tập trung vào nhóm nhân sự cần phân tích.",
+          searchLabel: "Tìm kiếm",
+          searchPlaceholder: "Tìm theo tên hoặc mã nhân viên",
+          departmentLabel: "Phòng ban",
+          ratingLabel: "Mức đánh giá",
+          tableTitle: "Bảng dữ liệu chi tiết",
+          tableSubtitle:
+            "Danh sách đầy đủ thông tin nhân sự bao gồm mức độ hoàn thành chỉ tiêu, kết quả đánh giá, điểm mạnh và định hướng phát triển trong năm tới.",
+          chartsTitle: "Biểu đồ trực quan",
+          chartsSubtitle:
+            "So sánh mức độ hoàn thành trung bình theo phòng ban và tỉ lệ các mức đánh giá để xác định khu vực nổi bật cần chú ý.",
+          completionChartTitle: "Trung bình hoàn thành theo phòng ban",
+          ratingChartTitle: "Tỉ lệ các mức đánh giá",
+          insightsTitle: "Nhận định nổi bật",
+          insightsSubtitle:
+            "Diễn giải ngắn gọn những điểm cần chú ý để hỗ trợ ra quyết định phát triển nhân sự năm 2024.",
+          strengthsTitle: "Điểm sáng",
+          focusTitle: "Trọng tâm cải thiện",
+          nextStepsTitle: "Hành động đề xuất",
+          footerNote:
+            "Báo cáo được tổng hợp nhằm hỗ trợ bộ phận nhân sự và ban điều hành xây dựng kế hoạch phát triển nhân sự năm 2024.",
+          noData: "Không có dữ liệu phù hợp",
+          summaryCards: {
+            totalEmployees: "Tổng nhân sự",
+            avgCompletion: "Hoàn thành trung bình",
+            topPerformersRate: "Tỉ lệ xuất sắc",
+            improvementCount: "Cần hỗ trợ thêm",
+          },
+          summaryUnits: {
+            totalEmployees: "nhân sự",
+            avgCompletion: "%",
+            topPerformersRate: "%",
+            improvementCount: "nhân sự",
+          },
+          cardDescriptions: {
+            totalEmployees: (value) => `${value} nhân sự trong phạm vi báo cáo`,
+            avgCompletion: (value) => `Mức độ hoàn thành trung bình ${value}%`,
+            topPerformersRate: (value) => `${value}% nhân sự đạt mức xuất sắc`,
+            improvementCount: (value) => `${value} nhân sự cần kế hoạch hỗ trợ`,
+          },
+          tableHeaders: [
+            "STT",
+            "Mã NV",
+            "Họ và tên",
+            "Giới tính",
+            "Ngày sinh",
+            "Chức vụ",
+            "Phòng ban",
+            "Email",
+            "Điện thoại",
+            "Hoàn thành",
+            "Đánh giá",
+            "Điểm mạnh",
+            "Định hướng 2024",
+          ],
+          genders: { male: "Nam", female: "Nữ" },
+          departments: {
+            all: "Tất cả phòng ban",
+            sales: "Kinh doanh",
+            marketing: "Marketing",
+            it: "Công nghệ thông tin",
+            hr: "Nhân sự",
+            finance: "Tài chính - Kế toán",
+            customer: "Dịch vụ khách hàng",
+          },
+          ratings: {
+            all: "Tất cả mức đánh giá",
+            outstanding: "Xuất sắc",
+            good: "Tốt",
+            fair: "Khá",
+            average: "Đạt yêu cầu",
+            needs_improvement: "Cần cải thiện",
+          },
+          insights: {
+            strengths: (stats) => [
+              `${stats.highestPerformer?.name ?? "-"} đạt ${stats.highestPerformer?.completion ?? 0}% mức hoàn thành, dẫn đầu toàn công ty.`,
+              `Phòng ${stats.bestDepartmentLabel} có hiệu suất trung bình ${stats.bestDepartmentAverage}% nhờ các sáng kiến tối ưu quy trình.`,
+              `${stats.topPerformerCount} nhân sự đạt mức xuất sắc với các dự án tạo giá trị tăng trưởng rõ rệt.`,
+            ],
+            focus: (stats) => [
+              `${stats.lowestPerformer?.name ?? "-"} cần kế hoạch kèm cặp để nâng tỷ lệ hoàn thành từ ${stats.lowestPerformer?.completion ?? 0}% lên mức mục tiêu.`,
+              `Phòng ${stats.lowestDepartmentLabel} cần rà soát quy trình vì hiệu suất trung bình chỉ ${stats.lowestDepartmentAverage}%.`,
+            ],
+            nextSteps: () => [
+              "Triển khai chương trình mentoring cá nhân hóa cho nhóm cần cải thiện.",
+              "Tăng cường chia sẻ nội bộ về các sáng kiến giúp phòng ban đạt hiệu suất cao.",
+              "Theo dõi KPI hàng quý và cập nhật dashboard thời gian thực cho ban lãnh đạo.",
+            ],
+          },
+        },
+        ja: {
+          pageTag: "社内レポート",
+          pageTitle: "人事パフォーマンス分析レポート 2023",
+          pageSubtitle:
+            "2023年の社内評価データに基づき、従業員の成果、強み、および2024年に向けた育成方針を可視化します。",
+          lastUpdated: "最終更新: 2023年12月",
+          languageLabel: "言語",
+          languageButton: { vi: "ベトナム語", ja: "日本語" },
+          summaryTitle: "パフォーマンス概要",
+          summaryDescription:
+            "主要指標を素早く把握し、組織全体のパフォーマンス傾向を確認します。",
+          filtersTitle: "データフィルター",
+          filtersSubtitle:
+            "部門や評価ランクで絞り込み、分析したい従業員グループに焦点を当てましょう。",
+          searchLabel: "検索",
+          searchPlaceholder: "氏名または社員コードで検索",
+          departmentLabel: "部門",
+          ratingLabel: "評価ランク",
+          tableTitle: "詳細データ一覧",
+          tableSubtitle:
+            "目標達成度、評価結果、強み、2024年の育成計画など、従業員に関する全情報を確認できます。",
+          chartsTitle: "ビジュアルチャート",
+          chartsSubtitle:
+            "部門別の平均達成度と評価ランクの構成比を比較し、注目すべき領域を特定します。",
+          completionChartTitle: "部門別平均達成度",
+          ratingChartTitle: "評価ランク構成比",
+          insightsTitle: "主なインサイト",
+          insightsSubtitle:
+            "2024年の人材開発計画に役立つ要点を簡潔に整理しました。",
+          strengthsTitle: "好調ポイント",
+          focusTitle: "改善フォーカス",
+          nextStepsTitle: "推奨アクション",
+          footerNote:
+            "本レポートは人事部門と経営陣の2024年人材育成計画策定を支援するために作成されています。",
+          noData: "該当するデータがありません",
+          summaryCards: {
+            totalEmployees: "対象従業員数",
+            avgCompletion: "平均達成度",
+            topPerformersRate: "優秀層の比率",
+            improvementCount: "支援が必要",
+          },
+          summaryUnits: {
+            totalEmployees: "名",
+            avgCompletion: "%",
+            topPerformersRate: "%",
+            improvementCount: "名",
+          },
+          cardDescriptions: {
+            totalEmployees: (value) => `分析対象は${value}名の従業員`,
+            avgCompletion: (value) => `平均達成度は${value}%`,
+            topPerformersRate: (value) => `優秀評価は${value}%を占める`,
+            improvementCount: (value) => `追加支援が必要な従業員は${value}名`,
+          },
+          tableHeaders: [
+            "No",
+            "社員コード",
+            "氏名",
+            "性別",
+            "生年月日",
+            "役職",
+            "部門",
+            "メール",
+            "電話",
+            "達成度",
+            "評価",
+            "強み",
+            "2024年育成方針",
+          ],
+          genders: { male: "男性", female: "女性" },
+          departments: {
+            all: "全ての部門",
+            sales: "営業",
+            marketing: "マーケティング",
+            it: "IT",
+            hr: "人事",
+            finance: "財務・会計",
+            customer: "カスタマーケア",
+          },
+          ratings: {
+            all: "全ての評価",
+            outstanding: "優秀",
+            good: "良好",
+            fair: "平均以上",
+            average: "基準達成",
+            needs_improvement: "改善が必要",
+          },
+          insights: {
+            strengths: (stats) => [
+              `${stats.highestPerformer?.name ?? "-"}は達成度${stats.highestPerformer?.completion ?? 0}%で全社トップ。`,
+              `${stats.bestDepartmentLabel}部門の平均達成度は${stats.bestDepartmentAverage}%と特に高水準。`,
+              `優秀評価は${stats.topPerformerCount}名で、成長を牽引するプロジェクトを推進。`,
+            ],
+            focus: (stats) => [
+              `${stats.lowestPerformer?.name ?? "-"}は達成度${stats.lowestPerformer?.completion ?? 0}%のため、重点的なメンタリングが必要。`,
+              `${stats.lowestDepartmentLabel}部門は平均${stats.lowestDepartmentAverage}%でプロセス見直しが求められる。`,
+            ],
+            nextSteps: () => [
+              "改善が必要なグループ向けに個別メンタリングを導入する。",
+              "高成果部門の取り組みを全社共有し、成功事例を横展開する。",
+              "四半期ごとのKPIレビューとリアルタイムダッシュボード更新を継続する。",
+            ],
+          },
+        },
+      };
+      const ratingOrder = [
+        "outstanding",
+        "good",
+        "fair",
+        "average",
+        "needs_improvement",
+      ];
+
+      let currentLang = "vi";
+      let filteredEmployees = [...employees];
+      let completionChart = null;
+      let ratingChart = null;
+
+      const summaryCardsEl = document.getElementById("summaryCards");
+      const tableHeaderRow = document.getElementById("tableHeaderRow");
+      const tableBody = document.getElementById("tableBody");
+      const searchInput = document.getElementById("searchInput");
+      const departmentFilter = document.getElementById("departmentFilter");
+      const ratingFilter = document.getElementById("ratingFilter");
+
+      function formatDateToLocale(dateString) {
+        if (!dateString) return "-";
+        const date = new Date(dateString);
+        return new Intl.DateTimeFormat(currentLang === "vi" ? "vi-VN" : "ja-JP", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        }).format(date);
+      }
+
+      function computeStats(data) {
+        if (!data.length) {
+          return {
+            totalEmployees: 0,
+            avgCompletion: 0,
+            topPerformersRate: 0,
+            improvementCount: 0,
+            topPerformerCount: 0,
+            highestPerformer: null,
+            lowestPerformer: null,
+            bestDepartmentLabel: translations[currentLang].departments.all,
+            bestDepartmentAverage: 0,
+            lowestDepartmentLabel: translations[currentLang].departments.all,
+            lowestDepartmentAverage: 0,
+            departmentsCount: 0,
+          };
+        }
+
+        const totalEmployees = data.length;
+        const totalCompletion = data.reduce(
+          (sum, employee) => sum + employee.completion,
+          0
+        );
+        const avgCompletion = Math.round((totalCompletion / totalEmployees) * 10) / 10;
+
+        const topPerformers = data.filter(
+          (employee) => employee.rating === "outstanding"
+        );
+        const topPerformersRate = Math.round(
+          (topPerformers.length / totalEmployees) * 1000
+        ) / 10;
+
+        const improvementGroup = data.filter(
+          (employee) => employee.rating === "needs_improvement"
+        );
+
+        const highestPerformer = data.reduce((best, employee) =>
+          !best || employee.completion > best.completion ? employee : best
+        );
+
+        const lowestPerformer = data.reduce((worst, employee) =>
+          !worst || employee.completion < worst.completion ? employee : worst
+        );
+
+        const departmentGroups = data.reduce((groups, employee) => {
+          if (!groups[employee.department]) {
+            groups[employee.department] = [];
+          }
+          groups[employee.department].push(employee);
+          return groups;
+        }, {});
+
+        const departmentAverages = Object.entries(departmentGroups).map(
+          ([department, members]) => {
+            const average =
+              members.reduce((sum, employee) => sum + employee.completion, 0) /
+              members.length;
+            return { department, average: Math.round(average * 10) / 10 };
+          }
+        );
+
+        departmentAverages.sort((a, b) => b.average - a.average);
+
+        const bestDepartment = departmentAverages[0];
+        const lowestDepartment = departmentAverages[departmentAverages.length - 1];
+
+        const bestDepartmentLabel = bestDepartment
+          ? translations[currentLang].departments[bestDepartment.department]
+          : translations[currentLang].departments.all;
+
+        const lowestDepartmentLabel = lowestDepartment
+          ? translations[currentLang].departments[lowestDepartment.department]
+          : translations[currentLang].departments.all;
+
+        return {
+          totalEmployees,
+          avgCompletion,
+          topPerformersRate,
+          improvementCount: improvementGroup.length,
+          topPerformerCount: topPerformers.length,
+          highestPerformer,
+          lowestPerformer,
+          bestDepartmentLabel,
+          bestDepartmentAverage: bestDepartment ? bestDepartment.average : 0,
+          lowestDepartmentLabel,
+          lowestDepartmentAverage: lowestDepartment ? lowestDepartment.average : 0,
+          departmentsCount: departmentAverages.length,
+        };
+      }
+
+      function renderSummaryCards(stats) {
+        const langPack = translations[currentLang];
+        const cardKeys = [
+          "totalEmployees",
+          "avgCompletion",
+          "topPerformersRate",
+          "improvementCount",
+        ];
+
+        summaryCardsEl.innerHTML = cardKeys
+          .map((key) => {
+            const value = stats[key];
+            const unit = langPack.summaryUnits[key];
+            const description = langPack.cardDescriptions[key](value);
+            return `
+              <article class="bg-white/90 rounded-2xl border border-white/60 shadow-sm p-5 space-y-3 transition hover:-translate-y-1 hover:shadow-lg">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-semibold uppercase tracking-wide text-indigo-500">${langPack.summaryCards[key]}</span>
+                  <span class="text-sm text-slate-400">${unit}</span>
+                </div>
+                <p class="text-3xl font-semibold text-slate-900">${value}</p>
+                <p class="text-sm text-slate-500">${description}</p>
+              </article>
+            `;
+          })
+          .join("");
+      }
+
+      function renderTableHeaders() {
+        const headers = translations[currentLang].tableHeaders;
+        tableHeaderRow.innerHTML = headers
+          .map(
+            (header) =>
+              `<th scope="col" class="px-4 py-3 whitespace-nowrap">${header}</th>`
+          )
+          .join("");
+      }
+
+      function renderTableRows(data) {
+        if (!data.length) {
+          tableBody.innerHTML = `
+            <tr>
+              <td colspan="13" class="px-4 py-6 text-center text-slate-500">${translations[currentLang].noData}</td>
+            </tr>`;
+          return;
+        }
+
+        tableBody.innerHTML = data
+          .map((employee, index) => {
+            const langPack = translations[currentLang];
+            return `
+              <tr class="hover:bg-indigo-50/40 transition">
+                <td class="px-4 py-3 align-top">${index + 1}</td>
+                <td class="px-4 py-3 align-top font-semibold text-slate-700">${employee.code}</td>
+                <td class="px-4 py-3 align-top">${employee.name}</td>
+                <td class="px-4 py-3 align-top">${langPack.genders[employee.gender]}</td>
+                <td class="px-4 py-3 align-top">${formatDateToLocale(employee.birth)}</td>
+                <td class="px-4 py-3 align-top">${employee.position[currentLang]}</td>
+                <td class="px-4 py-3 align-top">${langPack.departments[employee.department]}</td>
+                <td class="px-4 py-3 align-top"><a class="text-indigo-600 hover:underline" href="mailto:${employee.email}">${employee.email}</a></td>
+                <td class="px-4 py-3 align-top">${employee.phone}</td>
+                <td class="px-4 py-3 align-top font-semibold text-slate-700">${employee.completion}%</td>
+                <td class="px-4 py-3 align-top">${translations[currentLang].ratings[employee.rating]}</td>
+                <td class="px-4 py-3 align-top max-w-xs">${employee.strengths[currentLang]}</td>
+                <td class="px-4 py-3 align-top max-w-xs">${employee.development[currentLang]}</td>
+              </tr>
+            `;
+          })
+          .join("");
+      }
+
+      function populateSelectOptions() {
+        const langPack = translations[currentLang];
+
+        const selectedDepartment = departmentFilter.value || "all";
+        const selectedRating = ratingFilter.value || "all";
+
+        departmentFilter.innerHTML = Object.entries(langPack.departments)
+          .map(
+            ([value, label]) =>
+              `<option value="${value}" ${value === selectedDepartment ? "selected" : ""}>${label}</option>`
+          )
+          .join("");
+
+        ratingFilter.innerHTML = Object.entries(langPack.ratings)
+          .map(
+            ([value, label]) =>
+              `<option value="${value}" ${value === selectedRating ? "selected" : ""}>${label}</option>`
+          )
+          .join("");
+      }
+
+      function filterData() {
+        const keyword = searchInput.value.trim().toLowerCase();
+        const departmentValue = departmentFilter.value;
+        const ratingValue = ratingFilter.value;
+
+        filteredEmployees = employees.filter((employee) => {
+          const matchesKeyword = keyword
+            ? employee.name.toLowerCase().includes(keyword) ||
+              employee.code.toLowerCase().includes(keyword)
+            : true;
+
+          const matchesDepartment =
+            departmentValue === "all" || employee.department === departmentValue;
+
+          const matchesRating =
+            ratingValue === "all" || employee.rating === ratingValue;
+
+          return matchesKeyword && matchesDepartment && matchesRating;
+        });
+
+        updateView();
+      }
+
+      function buildDepartmentData(data) {
+        if (!data.length) {
+          return { labels: [translations[currentLang].departments.all], values: [0] };
+        }
+
+        const grouped = data.reduce((acc, employee) => {
+          if (!acc[employee.department]) {
+            acc[employee.department] = [];
+          }
+          acc[employee.department].push(employee.completion);
+          return acc;
+        }, {});
+
+        const labels = Object.keys(grouped).map(
+          (key) => translations[currentLang].departments[key]
+        );
+        const values = Object.values(grouped).map((scores) => {
+          const average = scores.reduce((sum, value) => sum + value, 0) / scores.length;
+          return Math.round(average * 10) / 10;
+        });
+
+        return { labels, values };
+      }
+
+      function buildRatingData(data) {
+        const counts = ratingOrder.reduce((acc, rating) => {
+          acc[rating] = 0;
+          return acc;
+        }, {});
+
+        data.forEach((employee) => {
+          counts[employee.rating] = (counts[employee.rating] || 0) + 1;
+        });
+
+        const labels = ratingOrder.map(
+          (rating) => translations[currentLang].ratings[rating]
+        );
+        const values = ratingOrder.map((rating) => counts[rating]);
+
+        return { labels, values };
+      }
+
+      function renderCharts(data) {
+        const departmentData = buildDepartmentData(data);
+        const ratingData = buildRatingData(data);
+
+        const completionCtx = document.getElementById("completionChart").getContext("2d");
+        const ratingCtx = document.getElementById("ratingChart").getContext("2d");
+
+        if (completionChart) completionChart.destroy();
+        if (ratingChart) ratingChart.destroy();
+
+        completionChart = new Chart(completionCtx, {
+          type: "bar",
+          data: {
+            labels: departmentData.labels,
+            datasets: [
+              {
+                label: translations[currentLang].completionChartTitle,
+                data: departmentData.values,
+                backgroundColor: "rgba(99, 102, 241, 0.7)",
+                borderRadius: 12,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: {
+                beginAtZero: true,
+                max: 100,
+                ticks: {
+                  callback: (value) => `${value}%`,
+                  color: "#475569",
+                },
+                grid: {
+                  color: "rgba(148, 163, 184, 0.2)",
+                },
+              },
+              x: {
+                ticks: { color: "#475569" },
+                grid: { display: false },
+              },
+            },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: (context) => `${context.parsed.y}%`,
+                },
+              },
+            },
+          },
+        });
+
+        ratingChart = new Chart(ratingCtx, {
+          type: "doughnut",
+          data: {
+            labels: ratingData.labels,
+            datasets: [
+              {
+                label: translations[currentLang].ratingChartTitle,
+                data: ratingData.values,
+                backgroundColor: [
+                  "#6366f1",
+                  "#22c55e",
+                  "#f59e0b",
+                  "#0ea5e9",
+                  "#ef4444",
+                ],
+                borderWidth: 0,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                position: "bottom",
+                labels: { color: "#475569" },
+              },
+            },
+          },
+        });
+      }
+
+      function renderInsights(stats) {
+        const langPack = translations[currentLang];
+        const strengths = langPack.insights.strengths(stats);
+        const focus = langPack.insights.focus(stats);
+        const nextSteps = langPack.insights.nextSteps(stats);
+
+        document.getElementById("strengthsList").innerHTML = strengths
+          .map((item) => `<li>${item}</li>`)
+          .join("");
+        document.getElementById("focusList").innerHTML = focus
+          .map((item) => `<li>${item}</li>`)
+          .join("");
+        document.getElementById("nextStepsList").innerHTML = nextSteps
+          .map((item) => `<li>${item}</li>`)
+          .join("");
+      }
+
+      function updateStaticTexts() {
+        const langPack = translations[currentLang];
+
+        document.getElementById("pageTag").textContent = langPack.pageTag;
+        document.getElementById("pageTitle").textContent = langPack.pageTitle;
+        document.getElementById("pageSubtitle").textContent = langPack.pageSubtitle;
+        document.getElementById("lastUpdated").textContent = langPack.lastUpdated;
+        document.getElementById("languageLabel").textContent = langPack.languageLabel;
+        document.getElementById("btnVi").textContent =
+          currentLang === "vi" ? "Tiếng Việt" : langPack.languageButton.vi;
+        document.getElementById("btnJa").textContent =
+          currentLang === "vi" ? "日本語" : langPack.languageButton.ja;
+
+        document.getElementById("summaryTitle").textContent = langPack.summaryTitle;
+        document.getElementById("summaryDescription").textContent =
+          langPack.summaryDescription;
+        document.getElementById("filtersTitle").textContent = langPack.filtersTitle;
+        document.getElementById("filtersSubtitle").textContent =
+          langPack.filtersSubtitle;
+        document.getElementById("searchLabel").textContent = langPack.searchLabel;
+        document.getElementById("searchInput").placeholder =
+          langPack.searchPlaceholder;
+        document.getElementById("departmentLabel").textContent =
+          langPack.departmentLabel;
+        document.getElementById("ratingLabel").textContent = langPack.ratingLabel;
+        document.getElementById("tableTitle").textContent = langPack.tableTitle;
+        document.getElementById("tableSubtitle").textContent = langPack.tableSubtitle;
+        document.getElementById("chartsTitle").textContent = langPack.chartsTitle;
+        document.getElementById("chartsSubtitle").textContent =
+          langPack.chartsSubtitle;
+        document.getElementById("completionChartTitle").textContent =
+          langPack.completionChartTitle;
+        document.getElementById("ratingChartTitle").textContent =
+          langPack.ratingChartTitle;
+        document.getElementById("insightsTitle").textContent = langPack.insightsTitle;
+        document.getElementById("insightsSubtitle").textContent =
+          langPack.insightsSubtitle;
+        document.getElementById("strengthsTitle").textContent = langPack.strengthsTitle;
+        document.getElementById("focusTitle").textContent = langPack.focusTitle;
+        document.getElementById("nextStepsTitle").textContent =
+          langPack.nextStepsTitle;
+        document.getElementById("footerNote").textContent = langPack.footerNote;
+      }
+
+      function updateView() {
+        renderTableHeaders();
+        renderTableRows(filteredEmployees);
+        const stats = computeStats(filteredEmployees);
+        renderSummaryCards(stats);
+        renderCharts(filteredEmployees);
+        renderInsights(stats);
+      }
+
+      function setLanguage(lang) {
+        currentLang = lang;
+        document.documentElement.lang = lang;
+        updateStaticTexts();
+        populateSelectOptions();
+        updateView();
+      }
+
+      searchInput.addEventListener("input", filterData);
+      departmentFilter.addEventListener("change", filterData);
+      ratingFilter.addEventListener("change", filterData);
+
+      document.querySelectorAll(".lang-btn").forEach((button) => {
+        button.addEventListener("click", (event) => {
+          document
+            .querySelectorAll(".lang-btn")
+            .forEach((btn) => btn.classList.remove("bg-indigo-500", "text-white"));
+
+          event.currentTarget.classList.add("bg-indigo-500", "text-white");
+          setLanguage(event.currentTarget.dataset.lang);
+        });
+      });
+
+      updateStaticTexts();
+      populateSelectOptions();
+      updateView();
+    </script>
+  </body>
+</html>

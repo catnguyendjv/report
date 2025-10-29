@@ -1,426 +1,430 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Phân tích khảo sát quy trình test</title>
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Báo cáo bottleneck quy trình test – VI/JA</title>
   <style>
-    .card { @apply bg-white rounded-2xl shadow p-5; }
-    .pill { @apply text-xs px-2 py-1 rounded-full bg-gray-100; }
+    :root {
+      --bg: #0f172a; /* slate-900 */
+      --card: #111827ee; /* gray-900 with alpha */
+      --muted: #94a3b8; /* slate-400 */
+      --text: #e5e7eb; /* gray-200 */
+      --accent: #22d3ee; /* cyan-400 */
+      --accent-2: #a78bfa; /* violet-400 */
+      --ok: #10b981; /* emerald */
+      --warn: #f59e0b; /* amber */
+      --danger: #ef4444; /* red */
+      --shadow: 0 10px 30px rgba(0,0,0,.45);
+      --radius: 18px;
+    }
+    html, body { height: 100%; }
+    body {
+      margin: 0; background: radial-gradient(1200px 700px at 20% -10%, #1f2937, transparent), radial-gradient(900px 600px at 120% 10%, #0e7490, transparent), var(--bg);
+      color: var(--text); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+    .wrap { max-width: 1100px; margin: 40px auto; padding: 0 20px 60px; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+    .title { font-size: clamp(22px, 3vw, 34px); font-weight: 800; letter-spacing: .2px; line-height: 1.2; }
+    .subtitle { color: var(--muted); font-size: 14px; }
+    .lang-toggle { display: inline-flex; border-radius: 999px; background: #0b1220; box-shadow: var(--shadow); border: 1px solid #1f2a44; padding: 4px; }
+    .lang-toggle button { all: unset; cursor: pointer; padding: 8px 14px; border-radius: 999px; font-weight: 700; color: var(--muted); transition: transform .08s ease; }
+    .lang-toggle button.active { background: linear-gradient(135deg, #0ea5e9, #8b5cf6); color: white; }
+    .lang-toggle button:active { transform: translateY(1px); }
+
+    .hero { position: relative; padding: 22px; border-radius: var(--radius); background: linear-gradient(180deg, rgba(17,24,39,.76), rgba(17,24,39,.5)); border: 1px solid rgba(255,255,255,.08); box-shadow: var(--shadow); }
+    .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 18px; }
+    .card { grid-column: span 12; background: var(--card); border: 1px solid rgba(255,255,255,.06); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px 18px; }
+    @media (min-width: 900px) {
+      .card.s6 { grid-column: span 6; }
+      .card.s4 { grid-column: span 4; }
+    }
+    .card h2 { margin: 6px 0 12px; font-size: 20px; letter-spacing: .3px; }
+    .card h3 { margin: 14px 0 8px; font-size: 16px; color: #c7d2fe; }
+    .tag { display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 12px; font-size: 12px; background: #0b1220; border: 1px solid #1f2a44; color: var(--muted); }
+    .badges { display: flex; flex-wrap: wrap; gap: 8px; }
+    ul { margin: 8px 0 8px 18px; }
+    li { margin: 6px 0; }
+    .kpi-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .kpi-table th, .kpi-table td { border: 1px solid rgba(255,255,255,.08); padding: 8px 10px; text-align: left; }
+    .kpi-table th { background: #0b1220; color: #cbd5e1; }
+    .footer { margin-top: 26px; color: var(--muted); font-size: 13px; }
+    .notice { font-size: 12px; color: var(--muted); }
+
+    /* Accordion */
+    details { background: transparent; border: 1px solid rgba(255,255,255,.06); border-radius: 14px; padding: 10px 12px; margin: 8px 0; }
+    details > summary { cursor: pointer; font-weight: 700; }
+
+    /* Language visibility */
+    [data-lang] { display: none; }
+    .show-vi [data-lang="vi"], .show-ja [data-lang="ja"] { display: block; }
   </style>
 </head>
-<body class="bg-gray-50">
-  <div class="max-w-6xl mx-auto p-6">
-    <header class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
+<body class="show-vi">
+  <div class="wrap">
+    <header>
       <div>
-        <h1 class="text-2xl font-bold" data-i18n="title">Phân tích khảo sát quy trình test</h1>
-        <p class="text-gray-600" data-i18n="subtitle">Dựa trên phản hồi từ biểu mẫu nội bộ (PDF).</p>
+        <div class="title">Báo cáo phân tích bottleneck – Quy trình test</div>
+        <div class="subtitle">Song ngữ: Tiếng Việt / 日本語 | Toggle bên phải để đổi ngôn ngữ</div>
       </div>
-      <div class="flex items-center gap-2">
-        <button id="langVi" class="px-3 py-2 rounded-xl border bg-white">Tiếng Việt</button>
-        <button id="langJa" class="px-3 py-2 rounded-xl border bg-white">日本語</button>
-        <a id="downloadData" class="px-3 py-2 rounded-xl bg-indigo-600 text-white" href="#" download="responses.json" data-i18n="download">Tải dữ liệu</a>
-        </div>
+      <div class="lang-toggle" role="tablist" aria-label="Language switcher">
+        <button id="btn-vi" class="active" role="tab" aria-selected="true">Tiếng Việt</button>
+        <button id="btn-ja" role="tab" aria-selected="false">日本語</button>
+      </div>
     </header>
 
-    <section class="grid md:grid-cols-3 gap-4 mb-6">
-      <div class="card">
-        <div class="text-sm text-gray-500" data-i18n="kpis.respondents">Số người trả lời</div>
-        <div id="kpiRespondents" class="text-3xl font-semibold">—</div>
+    <!-- HERO SUMMARY -->
+    <section class="hero" data-lang="vi">
+      <div class="badges">
+        <span class="tag">Tập trung vào bottleneck</span>
+        <span class="tag">Hành động 0–90 ngày</span>
+        <span class="tag">AI & Automation</span>
       </div>
-      <div class="card">
-        <div class="text-sm text-gray-500" data-i18n="kpis.teams">Số team</div>
-        <div id="kpiTeams" class="text-3xl font-semibold">—</div>
-      </div>
-      <div class="card">
-        <div class="text-sm text-gray-500" data-i18n="kpis.topStep">Bước “tốn thời gian” phổ biến</div>
-        <div id="kpiTopStep" class="text-xl font-semibold">—</div>
-      </div>
+      <p style="margin-top:10px">Báo cáo tổng hợp từ biểu mẫu khảo sát nội bộ về thời gian trong quy trình test. Nội dung ưu tiên các điểm nghẽn lặp lại ở nhiều phản hồi và các hành động có tác động lớn, khả thi sớm.</p>
     </section>
 
-    <section class="grid md:grid-cols-2 gap-4 mb-6">
-      <div class="card">
-        <h2 class="font-semibold mb-3" data-i18n="charts.freqTitle">Tần suất các bước “tốn thời gian”</h2>
-        <canvas id="chartSteps" height="220"></canvas>
+    <section class="hero" data-lang="ja">
+      <div class="badges">
+        <span class="tag">ボトルネックに集中</span>
+        <span class="tag">0–90日アクション</span>
+        <span class="tag">AI & 自動化</span>
       </div>
-      <div class="card">
-        <h2 class="font-semibold mb-3" data-i18n="charts.wordTitle">Cụm từ góp ý nổi bật</h2>
-        <div id="topTerms" class="flex flex-wrap gap-2"></div>
-      </div>
+      <p style="margin-top:10px">本レポートは、社内テスト工程の所要時間に関するアンケートを集約し、複数回答で繰り返し現れた課題を優先し、短期間で効果の高い改善を提示します。</p>
     </section>
 
-    <section class="card mb-8">
-      <div class="flex items-center justify-between mb-3">
-        <h2 class="font-semibold" data-i18n="table.title">Danh sách người trả lời (trích xuất tự động)</h2>
-        <input id="searchBox" class="border rounded-xl px-3 py-2 w-60" placeholder="Tìm email, team...">
-      </div>
-      <div class="overflow-x-auto">
-        <table class="min-w-full text-sm">
-          <thead class="bg-gray-100">
-            <tr>
-              <th class="text-left p-2">Timestamp</th>
-              <th class="text-left p-2">Email</th>
-              <th class="text-left p-2">Team</th>
-              <th class="text-left p-2" data-i18n="table.years">Năm KN</th>
-              <th class="text-left p-2" data-i18n="table.snippet">Góp ý (trích)</th>
-            </tr>
+    <div class="grid">
+      <article class="card" data-lang="vi">
+        <h2>1) Tóm tắt điều hành</h2>
+        <ul>
+          <li><strong>Bước tốn thời gian nhất</strong>: Execute test, Tạo test case, Tạo test viewpoint; tiếp theo là Study và Chuẩn bị môi trường & data.</li>
+          <li><strong>Nguyên nhân gốc</strong>: Spec/Design chưa rõ hoặc thay đổi muộn; bàn giao dev muộn và thiếu self-test/unit test; quá nhiều môi trường; tài liệu hệ thống thiếu/không chuẩn hoá.</li>
+          <li><strong>AI/Automation hiện dùng</strong>: mức thử nghiệm; tiết kiệm 0–40% (phổ biến 10–30%), phụ thuộc chất lượng spec.</li>
+          <li><strong>Ưu tiên 0–3 tháng</strong>: Khoá chuẩn Spec/Design & gating CR; bắt buộc Dev self-test theo viewpoint; chuẩn hoá thư viện Viewpoint/TCs; tối giản môi trường; thí điểm automation regression + tool tạo test data.</li>
+        </ul>
+      </article>
+
+      <article class="card" data-lang="ja">
+        <h2>1) エグゼクティブサマリー</h2>
+        <ul>
+          <li><strong>時間を要する工程</strong>: テスト実行、テストケース作成、テスト観点作成。次点は仕様理解（Study）と環境・データ準備。</li>
+          <li><strong>根本原因</strong>: 仕様/設計が不明確または遅延変更、Devの遅い引き渡し・self-test不足、環境が過多、体系的なドキュメント不足。</li>
+          <li><strong>AI/自動化の現状</strong>: 試験導入段階。省力効果は0–40%（一般的に10–30%）で、仕様品質に依存。</li>
+          <li><strong>0–3か月の優先事項</strong>: 仕様/設計テンプレートの確定と遅延CRのゲーティング、Devの観点に基づくself-test必須化、観点/TCライブラリの整備、環境のスリム化、回帰自動化とテストデータ生成の試行。</li>
+        </ul>
+      </article>
+
+      <article class="card s6" data-lang="vi">
+        <h2>2) Phương pháp & nguồn dữ liệu</h2>
+        <ul>
+          <li>Tổng hợp định tính các mục: bước tốn thời gian, AI/automation, góp ý quy trình/công cụ.</li>
+          <li>Nhấn mạnh xu hướng lặp lại giữa nhiều phản hồi để tránh thiên lệch cá nhân.</li>
+        </ul>
+      </article>
+      <article class="card s6" data-lang="ja">
+        <h2>2) 方法とデータ</h2>
+        <ul>
+          <li>工程別の所要時間、AI/自動化の利用、プロセス/ツールへの提案を定性的に集約。</li>
+          <li>単一意見の偏りを避け、複数回答での繰り返し傾向を重視。</li>
+        </ul>
+      </article>
+
+      <article class="card" data-lang="vi">
+        <h2>3) Phát hiện chi tiết theo bước</h2>
+        <details open>
+          <summary><strong>Execute test</strong></summary>
+          <ul>
+            <li>Xuất hiện dày đặc ở vị trí #1/#2; khối lượng lớn do CR muộn và ảnh hưởng chéo.</li>
+            <li>Thiếu self-test từ Dev làm tăng lỗi hiển nhiên, kéo dài vòng lặp kiểm thử.</li>
+          </ul>
+        </details>
+        <details>
+          <summary><strong>Tạo test case</strong></summary>
+          <ul>
+            <li>Spec chung chung → phải Q&A nhiều vòng; CR yêu cầu cập nhật lại TCs.</li>
+            <li>AI tạo TCs chưa ổn định, cần review/chỉnh sửa nhiều.</li>
+          </ul>
+        </details>
+        <details>
+          <summary><strong>Tạo test viewpoint</strong></summary>
+          <ul>
+            <li>Bước nặng công; đề xuất gen tự động, QA review; Dev self-test theo viewpoint.</li>
+          </ul>
+        </details>
+        <details>
+          <summary><strong>Study</strong></summary>
+          <ul>
+            <li>Spec thay đổi liên tục; dịch word-by-word dễ hiểu sai; thiếu tài liệu hệ thống.</li>
+          </ul>
+        </details>
+        <details>
+          <summary><strong>Chuẩn bị môi trường & data</strong></summary>
+          <ul>
+            <li>Nhiều thao tác thủ công (seed/teirei); số môi trường nhiều gây phân mảnh.</li>
+          </ul>
+        </details>
+      </article>
+
+      <article class="card" data-lang="ja">
+        <h2>3) 各工程の詳細所見</h2>
+        <details open>
+          <summary><strong>テスト実行</strong></summary>
+          <ul>
+            <li>#1/#2で頻出。遅延CRや影響範囲の広さでテスト量が膨張。</li>
+            <li>Devのself-test不足により初歩的欠陥が多く、検証が長期化。</li>
+          </ul>
+        </details>
+        <details>
+          <summary><strong>テストケース作成</strong></summary>
+          <ul>
+            <li>仕様が抽象的→Q&Aが多い。CRの度にTC更新が必要。</li>
+            <li>AI生成は安定せず、レビュー/修正コストが高い。</li>
+          </ul>
+        </details>
+        <details>
+          <summary><strong>テスト観点作成</strong></summary>
+          <ul>
+            <li>重作業。AIで自動生成しQAがレビュー、Devは観点に基づくself-testを実施。</li>
+          </ul>
+        </details>
+        <details>
+          <summary><strong>仕様理解（Study）</strong></summary>
+          <ul>
+            <li>仕様の頻繁な変更、逐語訳による誤解、現行システム文書の不足。</li>
+          </ul>
+        </details>
+        <details>
+          <summary><strong>環境・データ準備</strong></summary>
+          <ul>
+            <li>手作業が多く分散。環境数の多さがフローを複雑化。</li>
+          </ul>
+        </details>
+      </article>
+
+      <article class="card s6" data-lang="vi">
+        <h2>4) Nguyên nhân gốc</h2>
+        <ul>
+          <li><strong>Spec/Design không ổn định</strong> (mơ hồ, CR muộn) → kéo dài Study/TVP/TC/Execute.</li>
+          <li><strong>Kỷ luật dự án</strong> (bàn giao muộn, thiếu unit/self-test, UAT criteria chưa rõ).</li>
+          <li><strong>Tài liệu & tái sử dụng kém</strong> (thiếu spec hiện trạng, kho TCs chuẩn và traceability).</li>
+          <li><strong>Hạ tầng/công cụ</strong> (chuẩn bị môi trường/data thủ công, quá nhiều môi trường, automation chưa đầu tư).</li>
+        </ul>
+      </article>
+      <article class="card s6" data-lang="ja">
+        <h2>4) 根本原因</h2>
+        <ul>
+          <li><strong>仕様/設計の不安定さ</strong>（曖昧・遅延CR）→ Study/観点/TC/実行が長期化。</li>
+          <li><strong>プロジェクト規律</strong>（遅い引き渡し、unit/self-test不足、UAT基準不明確）。</li>
+          <li><strong>ドキュメント/再利用の不足</strong>（現状仕様の整備不足、標準TCと履歴・紐付けの欠如）。</li>
+          <li><strong>基盤/ツール</strong>（環境・データ準備が手作業、環境過多、自動化への投資不足）。</li>
+        </ul>
+      </article>
+
+      <article class="card" data-lang="vi">
+        <h2>5) AI/Automation & cơ hội</h2>
+        <ul>
+          <li><strong>Hiện trạng</strong>: dùng AI (study/gen TVP/TC), thử automation (Cypress/Playwright等); tiết kiệm 0–40% nhưng dao động.</li>
+          <li><strong>Điểm chạm</strong>: gen TVP/TC từ spec chuẩn; tool tạo test data; automation regression màn ổn định; mapping impact khi CR; pipeline chuyển Viewpoint → TC bán tự động.</li>
+          <li><strong>Tiên quyết</strong>: chuẩn hoá Spec/Design/Template; repo hoá TVP/TCs; giảm nhiễu môi trường; dành 1–2 sprint dựng nền.</li>
+        </ul>
+      </article>
+      <article class="card" data-lang="ja">
+        <h2>5) AI/自動化の現状と機会</h2>
+        <ul>
+          <li><strong>現状</strong>: AIでStudy/観点/TC生成を試行、回帰自動化を部分導入。効果は0–40%でばらつき。</li>
+          <li><strong>機会</strong>: 標準仕様から観点/TC生成、テストデータ生成、安定画面の回帰自動化、CR差分から影響抽出、観点→TC変換の半自動化。</li>
+          <li><strong>前提</strong>: 仕様テンプレート標準化、観点/TCリポジトリ化、環境ノイズ削減、1–2スプリントの初期投資。</li>
+        </ul>
+      </article>
+
+      <article class="card s6" data-lang="vi">
+        <h2>6) Khuyến nghị hành động</h2>
+        <h3>0–30 ngày (Quick wins)</h3>
+        <ul>
+          <li>Khoá template Spec & gating CR muộn.</li>
+          <li>Dev self-test bắt buộc theo Viewpoint; checklist bằng chứng.</li>
+          <li>Tối giản môi trường ở luồng phù hợp.</li>
+          <li>Kho Viewpoint/TCs chuẩn (version, history, naming).</li>
+          <li>Script tạo test data + hướng dẫn prompt AI.</li>
+        </ul>
+        <h3>31–90 ngày (Build nền tảng)</h3>
+        <ul>
+          <li>Thí điểm regression automation; tiêu chí pass/flake.</li>
+          <li>Pipeline “Spec→Viewpoint→TCs” bán tự động.</li>
+          <li>Bảng điều khiển: Lead time, Rework do CR, Leakage, Coverage.</li>
+          <li>Đào tạo: API/DB, phân rã phạm vi ảnh hưởng, viết TVP/TC “AI-friendly”.</li>
+        </ul>
+        <h3>90+ ngày (Scale)</h3>
+        <ul>
+          <li>Mở rộng automation & test-data generators.</li>
+          <li>Risk-based testing & chuẩn hoá UAT.</li>
+          <li>Documentation liên tục & traceability.</li>
+        </ul>
+      </article>
+      <article class="card s6" data-lang="ja">
+        <h2>6) 推奨アクション</h2>
+        <h3>0–30日（Quick wins）</h3>
+        <ul>
+          <li>仕様テンプレート確定と遅延CRのゲーティング。</li>
+          <li>Devの観点に基づくself-test必須化（エビデンスチェックリスト）。</li>
+          <li>適用可能な領域で環境を削減。</li>
+          <li>観点/TCの標準ライブラリ（版管理・履歴・命名）。</li>
+          <li>テストデータ生成スクリプト＋AIプロンプトガイド。</li>
+        </ul>
+        <h3>31–90日（基盤整備）</h3>
+        <ul>
+          <li>回帰自動化のパイロット（合格率・フレーク基準）。</li>
+          <li>「仕様→観点→TC」半自動パイプライン。</li>
+          <li>ダッシュボード：工程別リードタイム、CR起因リワーク、漏れ、カバレッジ。</li>
+          <li>教育：API/DB、影響範囲分解、AIに適した観点/TCの書き方。</li>
+        </ul>
+        <h3>90日以降（スケール）</h3>
+        <ul>
+          <li>自動化とデータ生成の拡大。</li>
+          <li>リスクベースドテスティングとUAT基準の標準化。</li>
+          <li>継続ドキュメンテーションとトレーサビリティ。</li>
+        </ul>
+      </article>
+
+      <article class="card" data-lang="vi">
+        <h2>7) Bộ KPI đề xuất</h2>
+        <table class="kpi-table">
+          <thead>
+            <tr><th>Nhóm</th><th>KPI</th><th>Mục tiêu gợi ý</th></tr>
           </thead>
-          <tbody id="respBody"></tbody>
+          <tbody>
+            <tr><td>Tiến độ</td><td>Lead time theo bước</td><td>-15–30% sau 2 sprint</td></tr>
+            <tr><td>Chất lượng bàn giao</td><td>% task có self-test đạt chuẩn</td><td>&gt;= 90%</td></tr>
+            <tr><td>Ổn định phạm vi</td><td>Tỷ lệ CR muộn</td><td>&lt;= 10–15%</td></tr>
+            <tr><td>Chất lượng</td><td>Defect leakage</td><td>-20% Dev→QA; -30% QA→Stg/Prod</td></tr>
+            <tr><td>Tự động hoá</td><td>Automation coverage & pass-rate</td><td>&gt;= 30% module ổn định; pass &gt;= 95%</td></tr>
+            <tr><td>Năng suất</td><td>Thời gian chuẩn bị test data</td><td>-40% cho case lặp</td></tr>
+          </tbody>
         </table>
-      </div>
-    </section>
+      </article>
 
-    <details class="card">
-      <summary class="cursor-pointer font-semibold" data-i18n="raw.title">Xem/ẩn dữ liệu thô (đã nhúng)</summary>
-      <textarea class="w-full h-60 mt-3 border rounded p-2 text-xs" readonly>Timestamp Email Address Bạn thuộc bộ phận nào? Số năm kinh nghiệm của bạn
-(Nếu trên 10 năm thì vẫn chọn là 10 năm)
-Trong các bước ở quy trình test phía trên, hãy chọn ra 3 bước mà bạn cảm thấy tốn nhiều thời gian nhất. [Đâu là bước mà bạn cảm thấy tốn nhiều thời gian nhất?]
-Trong các bước ở quy trình test phía trên, hãy chọn ra 3 bước mà bạn cảm thấy tốn nhiều thời gian nhất. [Đâu là bước mà bạn cảm thấy tốn nhiều thời gian thứ 2?]
-Trong các bước ở quy trình test phía trên, hãy chọn ra 3 bước mà bạn cảm thấy tốn nhiều thời gian nhất. [Đâu là bước mà bạn cảm thấy tốn nhiều thời gian thứ 3?]
-Trong các bước ở quy trình test theo bạn thì có thể sử dụng AI, automation test ở những bước nào? Thực tế bạn đang sử dụng AI, automation test ở những bước nào? Hãy nhập % công số bạn giảm được khi sử dụng AI, automation test ở những bước đó. Hãy đưa ra góp ý đối với quy trình làm việc chung hiện tại (bao gồm của phía tester, team, phía JP,...), theo bạn làm thế nào thì năng suất của phía tester sẽ tăng lên? Bạn có gợi ý gì về các công cụ, tool có thể giúp cải thiện hiệu quả của đội test không? Nếu có thì hãy điền thông tin vào nội dung này nhé.
-10/27/2025 10:20:03 thu.nguyen@drjoy.vn Dev6 7 Tạo test case Tạo test viewpoint Chuẩn bị môi trường và data test Tạo test viewpoint, Tạo test case, Chuẩn bị môi trường và data test, Execute test Tạo test viewpoint, Review test viewpoint, Tạo test case, Chuẩn bị môi trường và data test, Execute test 30 Cần có spec clear cụ thể
-10/27/2025 10:24:44 oanh.leu@drjoy.vn Dev1 7 Execute test Tạo test case Study Tạo test case, Chuẩn bị môi trường và data test Tạo test case, Chuẩn bị môi trường và data test 20
-1. Spec cần clear rõ ràng, hạn chế thời gian study, thời gian Q&A spec 2. Các giai đoạn trước đó cần được bàn giao đúng dự kiến như spec đúng thời hạn, thời gian dev bàn giao task đúng theo kế hoạch 3. Dev nên thực hiện unitest, selftest cẩn thận để đảm bảo hạn chế thời gian tester cần log bug, verify bug cũng như đảm bảo chất lượng, tiến độ dự án 
-10/27/2025 10:30:41 phuong.vu@drjoy.vn Dev1 4 Execute test Tạo test case Study Study, Tạo test viewpoint, Tạo test case, Chuẩn bị môi trường và data test Study, Tạo test viewpoint, Tạo test case 30
-- Spec JP không nên thay đổi hoặc request mới khi đã test ở môi trường từ Develop trở lên.
-- Team nên đảm bảo thời gian bàn giao task theo sát plan hơn, tránh bàn giao quá muộn gây ảnh hưởng tiến độ các bên. Không
-10/27/2025 10:34:53 thao.leu@drjoy.vn Dev3 7 Tạo test case Execute test Study Study, Tạo test viewpoint, Review test viewpoint, Tạo test case, Chuẩn bị môi trường và data test, Execute test Study, Tạo test viewpoint, Review test viewpoint, Tạo test case 30 Có thể phát triển được tool AI thật sự hiệu quả cho việc study, viết TC và Execute test mà không tốn nhiều thời gian của tester để review lại
-10/27/2025 10:43:06 tam.truong@drjoy.vn Dev5 7 Execute test Tạo test case Tạo test viewpoint Tạo test viewpoint, Review test viewpoint, Tạo test case, Execute test, Verify bug Không sử dụng 0.1
-- Phía JP, BA làm rõ spec sớm, đặc biệt các spec mang tính logic chung có thể thay đổi phạm test. Hạn chế việc đổi hoặc thêm thắt spec khi đã viết testcase hoặc đang thực thi test
-- Viết viewpoint là bắt buộc với các ticket có estimate time >5h, tuy nhiên hiện tại phần viewpoint này không phải dev nào cũng sefl test theo, đôi khi viewpoint quá dài do tester sợ thiếu cũng làm cho dev không thể sefltest hết và làm tăng thời gian viết viewpoint và testcase ==> áp dụng AI viết viewpoint 100% và tester chỉ review lại để đảm bảo chất lượng cũng như giảm công số tester ở giai đoạn này.
-Sử dụng Git để quản lý testcase theo feature hoặc theo màn hình, dễ dàng tìm và tái sử dụng testcase có sẵn.
-10/27/2025 10:43:49 hue.dang@drjoy.vn Dev5 2 Execute test Tạo test case Verify bug Execute test Execute test 10 Các senior tester chia sẻ thêm về skill test, cách test,... để những người có ít kinh nghiệm hơn học hỏi Chưa biết nhiều về các tool test nên chưa có gợi ý gì
-10/27/2025 10:44:52 hang.nguyen@drjoy.vn Dev12 9 Study Tạo test case Tạo test viewpoint Tạo test viewpoint, Review test viewpoint, Tạo test case Không sử dụng 1 AI tool cần thực sự hữu ích thì sử dụng mới có kết quả cao. Các công cụ hiện tại đang sử dụng cho tester đều có các nhược điểm gây tốn thời gian chỉnh sửa testcase > mất thời gian như tự viết
-10/27/2025 10:45:36 huyen.nguyen@drjoy.vn Dev2 3 Study Tạo test case Verify bug Study, Tạo test viewpoint, Tạo test case Study, Tạo test viewpoint, Tạo test case 20
-Hiện tại, việc spec chưa được làm rõ và thay đổi liên tục đang gây nhiều khó khăn cho phía tester. Mỗi khi hoàn tất việc study spec, lại có thêm CR mới khiến tester phải nghiên cứu lại, đánh giá mức độ ảnh hưởng đến các phần khác, rồi cập nhật lại testcase, dẫn đến tăng khối lượng và thời gian làm việc. Nếu spec được xác định rõ ràng ngay từ đầu, có đánh giá đầy đủ các phần bị ảnh hưởng cùng với solution hợp lý, khả thi và có thể làm được, thì tester chỉ cần study spec và tạo testcase một lần duy nhất, thay vì phải lặp lại nhiều lần như hiện nay.
-Hiện tại đang dùng công cụ tool của Dev 3 để study spec, và Germini để tạo testcase
-10/27/2025 10:46:14 loan.pham@drjoy.vn Dev8 5 Tạo test case Execute test Tạo test viewpoint Tạo test viewpoint, Tạo test case, Execute test Không sử dụng 0
-10/27/2025 10:47:33 thoa.le@drjoy.vn Dev8 7 Execute test Tạo test case Verify bug Study, Tạo test viewpoint Không sử dụng 0 không không
-10/27/2025 10:47:43 linh.vu2@drjoy.vn Dev6 3 Tạo test viewpoint Tạo test case Execute test Tạo test viewpoint, Chuẩn bị môi trường và data test Tạo test viewpoint, Chuẩn bị môi trường và data test, Execute test 20 Để nâng cao năng suất làm việc của tester, điểm quan trọng nhất là làm rõ và thống nhất nội dung spec ngay từ đầu, trước khi đội phát triển bắt đầu thực hiện. Nếu spec được clear sớm, sẽ giảm đáng kể thời gian trao đổi lại, tránh hiểu sai và hạn chế rework.
-10/27/2025 10:49:52 mai.le@drjoy.vn Dev6 10 Tạo test viewpoint Tạo test case Execute test Study, Tạo test viewpoint, Review test viewpoint, Chuẩn bị môi trường và data test, Execute test Chuẩn bị môi trường và data test 50
-Không nắm được quy trình làm việc chung của công ty (hiện tại không biết các team khác tester đang 
-làm theo quy trình như thế nào) nên chỉ góp ý riêng với quy trình của team Dev6
-1. BA: 
-- Cần transfer spec cho team Tester sớm hơn để có đủ thời gian đọc hiểu, đặt câu hỏi, và chuẩn bị testcase trước khi Dev bàn giao.
-- Trong trường hợp phát sinh CR (Change Request) gần ngày release, cần: Xem xét lùi release toàn bộ ticket, hoặc tách CR ra để release ở lần sau → Điều này đảm bảo chất lượng test, tránh gây áp lực cho Tester và giảm rủi ro bug lọt sang môi trường cao hơn. 2. JP: 
-- Với các task hoặc CR được gửi sang từ giữa tuần test dev, cần đánh giá lại tính khả thi của việc release đúng kế hoạch → Tránh trường hợp nhận task/CR trễ nhưng vẫn yêu cầu release đúng lịch, dẫn đến thiếu thời gian test và tăng rủi ro chất lượng
-10/27/2025 10:50:43 vi.nguyen@drjoy.vn Dev7 3 Execute test Tạo test viewpoint Chuẩn bị môi trường và data test Study, Tạo test viewpoint, Tạo test case, Chuẩn bị môi trường và data test Study, Tạo test viewpoint, Tạo test case 40
-Hiện nay việc sử dụng AI vào tạo test viewpoint vẫn còn hạn chế do một số màn chưa có tài liệu về spec hiện tại, dẫn đến khi phát triển tính năng mới hoặc sửa đổi các tính năng cũ, AI chỉ có thể đưa ra viewpoint về các thay đổi mới, không đưa ra được viewpoint liên quan đến ảnh hưởng của thay đổi mới tới spec hiện tại. Phần này thường phải bổ sung tay, cũng tốn nhiều thời gian. Nếu có spec đầy đủ của các màn hiện tại nữa sẽ có thể áp dụng AI tốt hơn 10/27/2025 10:52:49 thom.nguyen3@drjoy.vn Dev3 7 Chuẩn bị môi trường và data test Execute test Study Study, Tạo test viewpoint, Review test viewpoint, Tạo test case, Chuẩn bị môi trường và data test, Execute test Study, Tạo test viewpoint, Review test viewpoint, Tạo test case, Chuẩn bị môi trường và data test 15 Dùng AI Execute test, Verify bug. Áp dụng automation test cho regression hoặc UI repeat test Cypress, Playwright, Selenium.
-10/27/2025 10:58:54 xuyen.nguyen@drjoy.vn Dev8 6 Execute test Tạo test case Review test viewpoint Tạo test viewpoint, Tạo test case, Chuẩn bị môi trường và data test, Execute test Study, Tạo test viewpoint, Tạo test case 0
-- Xây dựng 1 bộ testcase chi tiết của từng màn, từng phần để sau này khi sửa hay update có thể sử dụng lại được. Đồng thời với những tester chưa từng làm các màn hay phần liên quan cũng có thể study và tiếp cận spec nhanh, dễ hiểu hơn
-- Hiện tại có những ticket dev sửa ít nhưng vì là core chung nên ảnh hưởng nhiều màn → không test hết các màn nếu lọt bug thì sẽ ảnh hưởng về sau, còn test hết thì công số nhiều. Xem xét có thể giảm số màn test ở đây không? Nếu có ai sẽ quyết định? 
-- Hạn chế thay đổi spec vì có những ticket khi thay đổi phải update và sửa lại ở nhiều màn
-- Phía JP chốt spec chắc chắn và phản hồi nhanh hơn 10/27/2025 11:01:51 hoa.nguyen@drjoy.vn Dev11 6 Execute test Tạo test case Study Chuẩn bị môi trường và data test, Execute test Study, Tạo test viewpoint, Tạo test case 10 Có thể giảm quy trình test trên môi trường jackfruit và đi test bắt đầu từ môi trường develop Hoặc tìm hiểu thêm các công cụ cho automation test nhanh hơn 
-10/27/2025 11:10:42 anh.le@drjoy.vn Dev3 7 Execute test Study Chuẩn bị môi trường và data test Study, Tạo test viewpoint, Review test viewpoint, Tạo test case Study, Tạo test viewpoint, Review test viewpoint, Tạo test case 20
-Tester :
-- Tạo test viewpoint, testcase chi tiết, rõ ràng, dễ hiểu. Chuẩn bị data test, làm rõ định hướng test của task trước khi bước vào gia đoan test trên các môi trường
-- Cần kiểm soát và theo dõi được tiến độ của task
-- Log bug cần mô tả chi tiết, rõ ràng 
-- Verify bug cần có envidence Team :
-- BA bàn giao SRS chi tiết, rõ ràng, dễ hiểu. Phản hồi QA kịp thời và chi tiết.
-- Dev : Cần thực hiện hoàn thành việc test viewpoint trước khi bàn giao cho tester.
-N/A
-10/27/2025 11:18:57 hien.pham2@drjoy.vn Dev11 3 Execute test Tạo test case Study Study, Tạo test viewpoint, Tạo test case Tạo test viewpoint, Tạo test case 5
-Theo em, có thể áp dụng cách sau để tăng năng suất: 1. Xây dựng và duy trì bộ tài liệu Spec chuẩn cho từng chức năng, mục đích:
-- Tra cứu nhanh cho member hiện tại, thuận tiện khi cần xác nhận behavior cũ.
-- Hỗ trợ cho member mới, giúp nắm bắt hệ thống nhanh hơn.
-- Làm cơ sở cho các công cụ AI tạo test case tự động, vì tool cần đối chiếu giữa spec hiện tại và spec cũ để nhận diện thay đổi. 2. Áp dụng công cụ automation cho việc test Teirei và tạo dữ liệu test, mục đích:
-- Tự động tạo data test, thay vì nhập tay thủ công.
-- Thực hiện các test lặp lại (như Teirei) một cách nhanh chóng, nhất quán.
-10/27/2025 11:25:55 lan.duong@drjoy.vn Dev7 6 Study Chuẩn bị môi trường và data test Tạo test viewpoint Tạo test viewpoint, Review test viewpoint, Tạo test case Tạo test viewpoint, Review test viewpoint, Tạo test case 20
-- Chuẩn hóa tài liệu đầu vào: Spec rõ ràng, yêu cầu team JP gửi spec theo template chuẩn (bao gồm field “mục tiêu kiểm thử”, “điều kiện tiền đề”, “case ví dụ”). Cho phép tester review spec sớm để giảm thời gian trao đổi
-- Sử dụng tool để tạo test data nhanh hơn, ví dụ data beacon cần tạo phía dev7 rất tốn thời gian vì thực hiện nhiều bước
-Từ tool AI của dev6, có thể triển khai thêm chức năng tạo test data beacon thì sẽ càng tốt
-10/27/2025 11:33:46 nga.tran@drjoy.vn Dev1 7 Tạo test case Execute test Study Study, Tạo test viewpoint, Tạo test case, Chuẩn bị môi trường và data test, Execute test Study, Chuẩn bị môi trường và data test 3
-- Với các service nên có TCs và spec final thông tin data base, để khi tester mới vào team hoặc từ team khác join service mới có thể chủ động tìm hiểu spec liên quan => giúp tester chủ động trong công việc, không mất thời gian chờ đợi team khác có effort rảnh mới transfer
-- Với spec : hiện tại spec ở dạng khá sơ sài, một số task nội dung JP viết không đúng với thực tế và được dịch word by word nên gây khó hiểu cho team, phải QA nhiều
-- Task: việc chuẩn bị task trước mỗi relelase của JP là chưa tốt, đôi khi thiếu task hoặc thêm task ở giai đoạn test. Việc không chuẩn bị task tốt trước mỗi release gây tốn effort khi phải update WBS liên tục, mất tập trung đôi khi là khó chịu khi ở các giai đoạn giữa hoặc cuối thì lại start task mới.
-- Việc est và commit đúng thời gian so với plan của bên Dev là rất quan trọng, ảnh hưởng đến plan và time test của tester
-- Đào tạo - chuẩn hóa kĩ năng test API, DB
-10/27/2025 12:47:26 nhung.nguyen@drjoy.vn Dev3 3 Execute test Chuẩn bị môi trường và data test Tạo test case Study, Tạo test viewpoint, Review test viewpoint, Tạo test case Study, Tạo test viewpoint, Review test viewpoint, Tạo test case 10 NA n8n, gemini, chat gpt
-10/27/2025 13:29:04 yen.phan@drjoy.vn Dev9 8 Tạo test case Execute test Verify bug Tạo test viewpoint, Tạo test case Tạo test viewpoint, Tạo test case 10
-- Team BA/JP cần xác định scope cần phải đối ứng 1 cách chi tiết ngay từ đầu
-- Design cần được hoàn thiện 99% trước khi team phát triển join vào, hạn chế thay đổi design ít nhất có thể
-- Spec cần được mô tả cụ thể, đầy đủ từng item, không được làm spec dạng chung chung
-- Đối với spec có logic phức tạp, cần được mô tả đưới dạng flow, mockup...
-- Phía JP, hạn chế thêm các CR rắc rối trong giai đoạn cuối của release
-- Phía Dev cần đánh giá chính xác phạm vi ảnh hưởng trước và sau khi coding done.
-- Team tester cần tìm hiểu thêm spec các màn hình liên quan của team khác đang phát triển, để chủ động test ảnh hưởng
-N/A
-10/27/2025 15:34:05 tra.pham2@drjoy.vn Dev10 4 Tạo test case Execute test Verify bug Study, Tạo test viewpoint, Review test viewpoint, Tạo test case, Chuẩn bị môi trường và data test Study, Tạo test viewpoint, Tạo test case 20 Đối với những ticket lớn, cần phía JP chốt đươc scope làm việc sớm cho team, tránh việc thay đổi request liên tục, muộn dẫn đến việc tester,dev cũng không có nhiều thời gian đối ứng
-10/27/2025 15:34:25 anh.nguyen2@drjoy.vn Dev9 6 Tạo test case Tạo test viewpoint Execute test Study, Tạo test viewpoint, Review test viewpoint, Tạo test case, Chuẩn bị môi trường và data test Tạo test viewpoint, Tạo test case, Chuẩn bị môi trường và data test 20
-- SRS rõ ràng, chi tiết để sử dụng AI hiệu quả hơn trong create TCs, viewpoint
-- Giới hạn số lần CR trong thời gian cho phép
-- Tiêu chí UAT
-10/27/2025 15:38:36 thao.nguyen@drjoy.vn Dev9 6 Execute test Tạo test case Verify bug Study, Tạo test viewpoint, Tạo test case, Execute test Study, Tạo test viewpoint, Tạo test case 20 JP cung cấp spec, design sớm, tránh CR nhiều
-10/27/2025 15:46:39 minh.nguyen@drjoy.vn Dev5 8 Tạo test viewpoint Chuẩn bị môi trường và data test Verify bug Chuẩn bị môi trường và data test, Execute test Chuẩn bị môi trường và data test, Execute test 5
-1. Từ bước Viewpoint -> Testcase có thể áp dụng 1 tool để gen Viewpoint thành Testcase để tiết kiệm thời gian. Tuy nhiên thời gian test ticket đang nhiều nên chưa có thời gian nghiên cứu tool được 2. Trước khi áp dụng tool AI nào nên check lại thời gian kiểm tra lại output của nó. Vì nhiều khi thời gian này lại làm tăng công số verify N/A
-10/27/2025 15:50:11 anh.hoang@drjoy.vn Dev12 4 Execute test Tạo test case Study Tạo test viewpoint, Tạo test case Tạo test viewpoint, Tạo test case 20 Em nghĩ là việc test hơi nhiều môi trường. Nên bớt 1 môi trường jack hoặc dev 
-10/27/2025 15:55:07 ngoc.le@drjoy.vn Dev11 7 Study Execute test Tạo test case Execute test, Tạo test case Tạo test case 5
- 1. Tài liệu : BA cần mô tả chi tiết các chức năng, tránh mô tả chung chung (vd: giữ nguyên logic, làm giống chúc năng A,.....) Các chức năng ảnh hưởng cần được liệt kê và đề cập trong buổi tranfer ticket. 2. Thường xuyên cập nhật các tài liệu overview cho các chức năng. 3. Dev: Cần khoanh vùng chức năng ảnh hưởng, chủ động trao đổi giải pháp, tránh tình huống hiểu sai yêu cầu của BA ngay từ đầu. 3. Tester: Cần tiền hiểu spec hơn để phán đoán được độ ảnh hưởng, trao đổi với dev về scope test. 4. Test nhiều môi trường: Đề xuất bỏ jack or dev .
-N/A
-10/27/2025 15:58:22 phuong.luu@drjoy.vn Dev8 5 Tạo test case Tạo test viewpoint Review test viewpoint Không thể sử dụng Không sử dụng 0 Em không có góp ý gì Em không có góp ý gì 10/27/2025 16:43:17 trang.le2@drjoy.vn Dev9 7 Tạo test case Study Tạo test viewpoint Study, Tạo test viewpoint, Tạo test case, Chuẩn bị môi trường và data test, Execute test Study, Tạo test viewpoint, Tạo test case, Chuẩn bị môi trường và data test 0 Muốn áp dụng AI vào khâu create viewpoint/ Tcs thì spec phải được BA trình bày một cách logic đồng thời spec cũng phải clear thì AI mới hiểu để thực thi
-10/27/2025 17:43:16 trang.nguyen3@drjoy.vn Dev6 4 Tạo test viewpoint Tạo test case Execute test Tạo test viewpoint, Chuẩn bị môi trường và data test, Execute testTạo test viewpoint, Chuẩn bị môi trường và data test, Execute test 20
-Dev: Bàn giao cần đúng với tiến độ đã lên plan từ đầu, nếu chậm thì cần báo sớm để có phương án kịp thời Tester: 
-- Dev bàn giao muộn dẫn tới không có nhiều thời gian để verify lại dẫn đến dễ lack bug
-- Có nhiều trường hợp spec update nhiều lần dẫn đến mất thời gian update lại testcase, và excute test lại
-- Sau mỗi trường hợp lack bug thì cần bổ sung thêm quan điểm test có bản thân Comtor/BA: Spec rõ ràng và chi tiết hơn 10/27/2025 18:03:28 nhung.pham@drjoy.vn Dev2 4 Execute test Study Tạo test viewpoint Tạo test viewpoint, Tạo test case, Chuẩn bị môi trường và data testChuẩn bị môi trường và data test 5
-1. Mong muốn có spec tổng hợp, được update thường xuyên giúp công việc study thuận lợi hơn, biết đâu là đúng sai (có sheet history để relate đến các ticket thay đổi) 2. Có 1 bộ testcase chuẩn của các màn, được cập nhật khi có thay đổi (có sheet history để relate đến các ticket thay đổi)
-10/27/2025 18:15:10 thu.nguyen2@drjoy.vn Dev2 4 Study Tạo test viewpoint Tạo test case Tạo test viewpoint, Tạo test case, Execute test Không sử dụng 0
-- Phía JP: phản hồi chậm, không chốt sớm vấn đề (VD: confirm có xử lý 1 chức năng AI trên mobile không nhưng 4 ngày mới có câu trả lời => ảnh hưởng đến việc est tổng thời gian cho 1 sprint , không biết thừa hay thiếu để nhận thêm hoặc từ chối task)
-- Team: cần retro đều đặn để có thể giải quyết các vấn đề kịp thời . =>> Việc được phản hồi sớm spec/issue/các vấn đề confirm với bên JP se tiết kiệm thời gian cho tất cả các bên, các vấn đề được xử lý sớm sẽ ít rủi ro hơn cho tất cả các khía cạnh (thời gian, chi phí, chất lượng...)
-10/27/2025 18:16:06 chi.nguyen@drjoy.vn Dev5 5 Chuẩn bị môi trường và data test Tạo test case Study Tạo test viewpoint, Review test viewpoint Không sử dụng 0 Mong muốn khi có ticket được nhận về team phụ trách thì phía JP hoặc phía BA đã có đầy đủ expect, để khi bắt đầu study, nếu trong team đặt câu hỏi thì phía BA hoặc phía JP có thể trả lời, không phải đợi phía khách hàng, đỡ mất thời gian chờ. 
-10/27/2025 18:38:44 hai.nguyen3@drjoy.vn Dev2 6 Execute test Tạo test case Study Study, Tạo test viewpoint, Review test viewpoint, Tạo test case, Chuẩn bị môi trường và data test, Execute test Study, Tạo test viewpoint, Tạo test case, Chuẩn bị môi trường và data test 10
-- Hiện trạng: Phía JP: Đầu ticket báo về muộn, spec không đầy đủ mơ hồ, design lộn xộn, không có roadmap của hệ thống dẫn đến. 1. Xây hệ thống SM ngược từ booking -> master data (đáng lẽ phải từ master -> booking) mới gây ra conflict giữa code mới và code cũ, spec màn này với màn khác, testing bị chồng chéo khó xác định scope team phụ trách. 2. JP thông báo bỏ các màn hình đã tốn 3 tháng để hoàn thành (SM0009, SM0010 cũ) gây lãng phí resource, gây cho đội phát triển tâm lý làm ra xong lại đập đi. 4. BA không có thời gian để nghiên cứu tất cả các phần ảnh hưởng, phải đi confirm lại design nhiều lần. 5. Dev code không có thời gian self test và bàn giao luôn hoặc không keep được deadline bàn giao, nhiều bug do không có thời gian self test. 6. Tester nhận bàn giao muộn, chỉ chạy theo TCs, không có thời gian free test, áp lực thời gian release nên chưa đánh giá được hết phạm vi ảnh hưởng. 7. Để vẫn dụng AI và Automation test thì cần có thời gian để áp dụng, không phải nói là áp dụng được luôn, áp lực thời gian release dẫn đến không có thời gian áp dụng 2 phần này. + Review TCs có đúng spec hay chưa + Chỉnh sửa promt hoặc chỉnh sửa TCs, TVP Hiện tại theo dự án n8n thì chất lượng TCs chưa đúng, mà ngồi chỉnh sửa thì bằng công viết lại từ đầu. Dự án Automation Testing của anh Tiến rất hay nhưng không có thời gian để cài cắm, nghiên cứu và trải nghiệm.
-- Góp ý 1. Quan trọng nhất từ step đầu tiên bên phía JP: báo sớm ticket, define spec rõ ràng tránh mơ hồ, design rõ ràng cái gì không còn thì xóa bỏ
-2. Dev estimate đủ, thực hiện selft test và bàn giao đúng hạn 3. Tester vận dụng AI để viết tcs, viewpoint Vận dụng automation test để giảm thời gian test manual 4. Có 1,2 sprint giảm thiểu lượng ticket để chừa lại effort nghiên cứu và áp dụng AI, Automation test, sau đó quen thì mới áp dụng lúc đó mới thấy được % công số giảm được khi sử dụng AI, automation test 10/28/2025 11:10:18 phuong.tran@drjoy.vn Dev7 7 Tạo test viewpoint Tạo test case Execute test Tạo test viewpoint, Review test viewpoint, Tạo test case, Chuẩn bị môi trường và data test Tạo test viewpoint, Review test viewpoint, Tạo test case 20 Tài liệu hóa nghiệp vụ các màn hình hiện tại một cách có hệ thống, để có thể sử dụng phổ biến AI vào các ticket phát triển thêm tính năng mới cho màn hình cũ, hoặc ticket sửa bug</textarea>
-    </details>
+      <article class="card" data-lang="ja">
+        <h2>7) 提案KPI</h2>
+        <table class="kpi-table">
+          <thead>
+            <tr><th>カテゴリ</th><th>KPI</th><th>目安</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>進捗</td><td>工程別リードタイム</td><td>2スプリントで-15–30%</td></tr>
+            <tr><td>引き渡し品質</td><td>self-test基準適合率</td><td>&gt;= 90%</td></tr>
+            <tr><td>範囲安定性</td><td>遅延CR率</td><td>&lt;= 10–15%</td></tr>
+            <tr><td>品質</td><td>漏れ（Defect leakage）</td><td>Dev→QA -20%、QA→Stg/Prod -30%</td></tr>
+            <tr><td>自動化</td><td>自動化カバレッジ/合格率</td><td>安定モジュールで&gt;=30%、合格&gt;=95%</td></tr>
+            <tr><td>生産性</td><td>テストデータ準備時間</td><td>繰り返しケースで-40%</td></tr>
+          </tbody>
+        </table>
+      </article>
+
+      <article class="card s6" data-lang="vi">
+        <h2>8) Rủi ro & phương án giảm thiểu</h2>
+        <ul>
+          <li>Thiếu capacity khởi động → Dành trước 1–2 sprint cho nền tảng.</li>
+          <li>Chất lượng AI dao động → Khoá template spec + checklist review output AI.</li>
+          <li>Flaky automation → Giới hạn phạm vi vào flow ổn định; kiểm soát flakiness trong CI.</li>
+        </ul>
+      </article>
+      <article class="card s6" data-lang="ja">
+        <h2>8) リスクと軽減策</h2>
+        <ul>
+          <li>初期リソース不足 → 1–2スプリントの基盤投資を確保。</li>
+          <li>AI品質のばらつき → 仕様テンプレ標準化と出力レビューのチェックリスト化。</li>
+          <li>自動化の不安定さ → 安定フローに限定、CIでフレーク率を監視/制御。</li>
+        </ul>
+      </article>
+
+      <article class="card" data-lang="vi">
+        <h2>9) Phụ lục – Trích dẫn tiêu biểu</h2>
+        <ul>
+          <li>“Spec cần clear rõ ràng… Dev nên unit/self-test cẩn thận…”</li>
+          <li>“Áp dụng AI viết viewpoint 100%, tester review; Dev self-test theo viewpoint…”</li>
+          <li>“Muốn áp dụng AI create viewpoint/TCs thì spec phải logic & clear; hiện AI tốn thời gian chỉnh sửa.”</li>
+          <li>“Đề xuất bỏ bớt 1 môi trường jack hoặc dev.”</li>
+          <li>“Cần thư viện TCs chi tiết theo màn để tái sử dụng; có lịch sử thay đổi liên kết ticket.”</li>
+        </ul>
+        <p class="notice">Lưu ý: Tóm lược từ phản hồi khảo sát nội bộ.</p>
+      </article>
+
+      <article class="card" data-lang="ja">
+        <h2>9) 付録―代表的なコメント</h2>
+        <ul>
+          <li>「仕様を明確に。Devはunit/self-testを厳格に…」</li>
+          <li>「観点はAIで100%生成、テスターがレビュー。Devは観点に基づきself-test…」</li>
+          <li>「AIで観点/TCを作るには、仕様の論理性と明確さが必須。現状は修正工数が多い。」</li>
+          <li>「環境（jack または dev）を1つ減らしたい。」</li>
+          <li>「画面単位の詳細TCライブラリと、チケットに紐づく変更履歴が必要。」</li>
+        </ul>
+        <p class="notice">注: 社内アンケート回答の要約です。</p>
+      </article>
+
+      <article class="card" data-lang="vi">
+        <h2>Kết luận</h2>
+        <p>Bottleneck chính đến từ đầu vào chưa chuẩn, kỷ luật bàn giao và nền tảng tái sử dụng/automation còn thiếu. Khoá Spec/Design và self-test theo Viewpoint sẽ rút ngắn mạnh Study/TVP/TC/Execute; song song chuẩn hoá thư viện và mở rộng automation để khuếch đại hiệu quả AI.</p>
+      </article>
+      <article class="card" data-lang="ja">
+        <h2>結論</h2>
+        <p>主なボトルネックは、未整備の入力（仕様）、引き渡し規律、再利用/自動化基盤の不足に起因します。仕様/設計の固定と観点に基づくself-testにより、Study/観点/TC/実行の所要時間を大幅短縮し、標準ライブラリ整備と自動化拡大でAI効果を増幅できます。</p>
+      </article>
+
+      <article class="card s4" data-lang="vi">
+        <h2>Tác giả</h2>
+        <p>Phòng QA/BrSE – Dr.JOY株式会社</p>
+      </article>
+      <article class="card s4" data-lang="ja">
+        <h2>作成</h2>
+        <p>QA/BrSE 部門 – Dr.JOY株式会社</p>
+      </article>
+      <article class="card s4" data-lang="vi" aria-live="polite">
+        <h2>Mẹo sử dụng</h2>
+        <ul>
+          <li>Nhấn <em>日本語</em> để chuyển sang tiếng Nhật; <em>Tiếng Việt</em> để quay lại.</li>
+          <li>Dùng <kbd>Ctrl/Cmd</kbd> + <kbd>P</kbd> để in thành PDF.</li>
+        </ul>
+      </article>
+    </div>
+
+    <div class="footer" data-lang="vi">© 2025 Dr.JOY株式会社 – Báo cáo nội bộ (bản trình bày HTML)</div>
+    <div class="footer" data-lang="ja">© 2025 Dr.JOY株式会社 – 社内レポート（HTML版）</div>
   </div>
 
-<script>
-// ---- i18n strings (VN/JA) ----
-const I18N = {
-  vi: {
-    title: "Phân tích khảo sát quy trình test",
-    subtitle: "Dựa trên phản hồi từ biểu mẫu nội bộ (PDF).",
-    download: "Tải dữ liệu",
-    "kpis.respondents": "Số người trả lời",
-    "kpis.teams": "Số team",
-    "kpis.topStep": "Bước “tốn thời gian” phổ biến",
-    "charts.freqTitle": "Tần suất các bước “tốn thời gian”",
-    "charts.wordTitle": "Cụm từ góp ý nổi bật",
-    "table.title": "Danh sách người trả lời (trích xuất tự động)",
-    "table.years": "Năm KN",
-    "table.snippet": "Góp ý (trích)",
-    "raw.title": "Xem/ẩn dữ liệu thô (đã nhúng)",
-  },
-  ja: {
-    title: "テストプロセス調査の分析",
-    subtitle: "社内フォーム（PDF）の回答に基づく分析。",
-    download: "データをダウンロード",
-    "kpis.respondents": "回答者数",
-    "kpis.teams": "チーム数",
-    "kpis.topStep": "最も時間がかかる工程",
-    "charts.freqTitle": "工数がかかる工程の頻度",
-    "charts.wordTitle": "主な改善キーワード",
-    "table.title": "回答者一覧（自動抽出）",
-    "table.years": "経験年数",
-    "table.snippet": "提案（抜粋）",
-    "raw.title": "埋め込みの生データを表示/非表示",
-  }
-};
+  <script>
+    const root = document.body;
+    const btnVI = document.getElementById('btn-vi');
+    const btnJA = document.getElementById('btn-ja');
 
-function setLang(lang) {
-  $("[data-i18n]").each(function() {
-    const key = $(this).data("i18n");
-    $(this).text(I18N[lang][key] || $(this).text());
-  });
-}
-
-$("#langVi").on("click", () => setLang("vi"));
-$("#langJa").on("click", () => setLang("ja"));
-
-// ---- Raw text from server ----
-const raw = `Timestamp Email Address Bạn thuộc bộ phận nào? Số năm kinh nghiệm của bạn
-(Nếu trên 10 năm thì vẫn chọn là 10 năm)
-Trong các bước ở quy trình test phía trên, hãy chọn ra 3 bước mà bạn cảm thấy tốn nhiều thời gian nhất. [Đâu là bước mà bạn cảm thấy tốn nhiều thời gian nhất?]
-Trong các bước ở quy trình test phía trên, hãy chọn ra 3 bước mà bạn cảm thấy tốn nhiều thời gian nhất. [Đâu là bước mà bạn cảm thấy tốn nhiều thời gian thứ 2?]
-Trong các bước ở quy trình test phía trên, hãy chọn ra 3 bước mà bạn cảm thấy tốn nhiều thời gian nhất. [Đâu là bước mà bạn cảm thấy tốn nhiều thời gian thứ 3?]
-Trong các bước ở quy trình test theo bạn thì có thể sử dụng AI, automation test ở những bước nào? Thực tế bạn đang sử dụng AI, automation test ở những bước nào? Hãy nhập % công số bạn giảm được khi sử dụng AI, automation test ở những bước đó. Hãy đưa ra góp ý đối với quy trình làm việc chung hiện tại (bao gồm của phía tester, team, phía JP,...), theo bạn làm thế nào thì năng suất của phía tester sẽ tăng lên? Bạn có gợi ý gì về các công cụ, tool có thể giúp cải thiện hiệu quả của đội test không? Nếu có thì hãy điền thông tin vào nội dung này nhé.
-10/27/2025 10:20:03 thu.nguyen@drjoy.vn Dev6 7 Tạo test case Tạo test viewpoint Chuẩn bị môi trường và data test Tạo test viewpoint, Tạo test case, Chuẩn bị môi trường và data test, Execute test Tạo test viewpoint, Review test viewpoint, Tạo test case, Chuẩn bị môi trường và data test, Execute test 30 Cần có spec clear cụ thể
-10/27/2025 10:24:44 oanh.leu@drjoy.vn Dev1 7 Execute test Tạo test case Study Tạo test case, Chuẩn bị môi trường và data test Tạo test case, Chuẩn bị môi trường và data test 20
-1. Spec cần clear rõ ràng, hạn chế thời gian study, thời gian Q&A spec 2. Các giai đoạn trước đó cần được bàn giao đúng dự kiến như spec đúng thời hạn, thời gian dev bàn giao task đúng theo kế hoạch 3. Dev nên thực hiện unitest, selftest cẩn thận để đảm bảo hạn chế thời gian tester cần log bug, verify bug cũng như đảm bảo chất lượng, tiến độ dự án 
-10/27/2025 10:30:41 phuong.vu@drjoy.vn Dev1 4 Execute test Tạo test case Study Study, Tạo test viewpoint, Tạo test case, Chuẩn bị môi trường và data test Study, Tạo test viewpoint, Tạo test case 30
-- Spec JP không nên thay đổi hoặc request mới khi đã test ở môi trường từ Develop trở lên.
-- Team nên đảm bảo thời gian bàn giao task theo sát plan hơn, tránh bàn giao quá muộn gây ảnh hưởng tiến độ các bên. Không
-10/27/2025 10:34:53 thao.leu@drjoy.vn Dev3 7 Tạo test case Execute test Study Study, Tạo test viewpoint, Review test viewpoint, Tạo test case, Chuẩn bị môi trường và data test, Execute test Study, Tạo test viewpoint, Review test viewpoint, Tạo test case 30 Có thể phát triển được tool AI thật sự hiệu quả cho việc study, viết TC và Execute test mà không tốn nhiều thời gian của tester để review lại
-10/27/2025 10:43:06 tam.truong@drjoy.vn Dev5 7 Execute test Tạo test case Tạo test viewpoint Tạo test viewpoint, Review test viewpoint, Tạo test case, Execute test, Verify bug Không sử dụng 0.1
-- Phía JP, BA làm rõ spec sớm, đặc biệt các spec mang tính logic chung có thể thay đổi phạm test. Hạn chế việc đổi hoặc thêm thắt spec khi đã viết testcase hoặc đang thực thi test
-- Viết viewpoint là bắt buộc với các ticket có estimate time >5h, tuy nhiên hiện tại phần viewpoint này không phải dev nào cũng sefl test theo, đôi khi viewpoint quá dài do tester sợ thiếu cũng làm cho dev không thể sefltest hết và làm tăng thời gian viết viewpoint và testcase ==> áp dụng AI viết viewpoint 100% và tester chỉ review lại để đảm bảo chất lượng cũng như giảm công số tester ở giai đoạn này.
-Sử dụng Git để quản lý testcase theo feature hoặc theo màn hình, dễ dàng tìm và tái sử dụng testcase có sẵn.
-10/27/2025 10:43:49 hue.dang@drjoy.vn Dev5 2 Execute test Tạo test case Verify bug Execute test Execute test 10 Các senior tester chia sẻ thêm về skill test, cách test,... để những người có ít kinh nghiệm hơn học hỏi Chưa biết nhiều về các tool test nên chưa có gợi ý gì
-10/27/2025 10:44:52 hang.nguyen@drjoy.vn Dev12 9 Study Tạo test case Tạo test viewpoint Tạo test viewpoint, Review test viewpoint, Tạo test case Không sử dụng 1 AI tool cần thực sự hữu ích thì sử dụng mới có kết quả cao. Các công cụ hiện tại đang sử dụng cho tester đều có các nhược điểm gây tốn thời gian chỉnh sửa testcase > mất thời gian như tự viết
-10/27/2025 10:45:36 huyen.nguyen@drjoy.vn Dev2 3 Study Tạo test case Verify bug Study, Tạo test viewpoint, Tạo test case Study, Tạo test viewpoint, Tạo test case 20
-Hiện tại, việc spec chưa được làm rõ và thay đổi liên tục đang gây nhiều khó khăn cho phía tester. Mỗi khi hoàn tất việc study spec, lại có thêm CR mới khiến tester phải nghiên cứu lại, đánh giá mức độ ảnh hưởng đến các phần khác, rồi cập nhật lại testcase, dẫn đến tăng khối lượng và thời gian làm việc. Nếu spec được xác định rõ ràng ngay từ đầu, có đánh giá đầy đủ các phần bị ảnh hưởng cùng với solution hợp lý, khả thi và có thể làm được, thì tester chỉ cần study spec và tạo testcase một lần duy nhất, thay vì phải lặp lại nhiều lần như hiện nay.
-Hiện tại đang dùng công cụ tool của Dev 3 để study spec, và Germini để tạo testcase
-10/27/2025 10:46:14 loan.pham@drjoy.vn Dev8 5 Tạo test case Execute test Tạo test viewpoint Tạo test viewpoint, Tạo test case, Execute test Không sử dụng 0
-10/27/2025 10:47:33 thoa.le@drjoy.vn Dev8 7 Execute test Tạo test case Verify bug Study, Tạo test viewpoint Không sử dụng 0 không không
-10/27/2025 10:47:43 linh.vu2@drjoy.vn Dev6 3 Tạo test viewpoint Tạo test case Execute test Tạo test viewpoint, Chuẩn bị môi trường và data test Tạo test viewpoint, Chuẩn bị môi trường và data test, Execute test 20 Để nâng cao năng suất làm việc của tester, điểm quan trọng nhất là làm rõ và thống nhất nội dung spec ngay từ đầu, trước khi đội phát triển bắt đầu thực hiện. Nếu spec được clear sớm, sẽ giảm đáng kể thời gian trao đổi lại, tránh hiểu sai và hạn chế rework.
-10/27/2025 10:49:52 mai.le@drjoy.vn Dev6 10 Tạo test viewpoint Tạo test case Execute test Study, Tạo test viewpoint, Review test viewpoint, Chuẩn bị môi trường và data test, Execute test Chuẩn bị môi trường và data test 50
-Không nắm được quy trình làm việc chung của công ty (hiện tại không biết các team khác tester đang 
-làm theo quy trình như thế nào) nên chỉ góp ý riêng với quy trình của team Dev6
-1. BA: 
-- Cần transfer spec cho team Tester sớm hơn để có đủ thời gian đọc hiểu, đặt câu hỏi, và chuẩn bị testcase trước khi Dev bàn giao.
-- Trong trường hợp phát sinh CR (Change Request) gần ngày release, cần: Xem xét lùi release toàn bộ ticket, hoặc tách CR ra để release ở lần sau → Điều này đảm bảo chất lượng test, tránh gây áp lực cho Tester và giảm rủi ro bug lọt sang môi trường cao hơn. 2. JP: 
-- Với các task hoặc CR được gửi sang từ giữa tuần test dev, cần đánh giá lại tính khả thi của việc release đúng kế hoạch → Tránh trường hợp nhận task/CR trễ nhưng vẫn yêu cầu release đúng lịch, dẫn đến thiếu thời gian test và tăng rủi ro chất lượng
-10/27/2025 10:50:43 vi.nguyen@drjoy.vn Dev7 3 Execute test Tạo test viewpoint Chuẩn bị môi trường và data test Study, Tạo test viewpoint, Tạo test case, Chuẩn bị môi trường và data test Study, Tạo test viewpoint, Tạo test case 40
-Hiện nay việc sử dụng AI vào tạo test viewpoint vẫn còn hạn chế do một số màn chưa có tài liệu về spec hiện tại, dẫn đến khi phát triển tính năng mới hoặc sửa đổi các tính năng cũ, AI chỉ có thể đưa ra viewpoint về các thay đổi mới, không đưa ra được viewpoint liên quan đến ảnh hưởng của thay đổi mới tới spec hiện tại. Phần này thường phải bổ sung tay, cũng tốn nhiều thời gian. Nếu có spec đầy đủ của các màn hiện tại nữa sẽ có thể áp dụng AI tốt hơn 10/27/2025 10:52:49 thom.nguyen3@drjoy.vn Dev3 7 Chuẩn bị môi trường và data test Execute test Study Study, Tạo test viewpoint, Review test viewpoint, Tạo test case, Chuẩn bị môi trường và data test, Execute test Study, Tạo test viewpoint, Review test viewpoint, Tạo test case, Chuẩn bị môi trường và data test 15 Dùng AI Execute test, Verify bug. Áp dụng automation test cho regression hoặc UI repeat test Cypress, Playwright, Selenium.
-10/27/2025 10:58:54 xuyen.nguyen@drjoy.vn Dev8 6 Execute test Tạo test case Review test viewpoint Tạo test viewpoint, Tạo test case, Chuẩn bị môi trường và data test, Execute test Study, Tạo test viewpoint, Tạo test case 0
-- Xây dựng 1 bộ testcase chi tiết của từng màn, từng phần để sau này khi sửa hay update có thể sử dụng lại được. Đồng thời với những tester chưa từng làm các màn hay phần liên quan cũng có thể study và tiếp cận spec nhanh, dễ hiểu hơn
-- Hiện tại có những ticket dev sửa ít nhưng vì là core chung nên ảnh hưởng nhiều màn → không test hết các màn nếu lọt bug thì sẽ ảnh hưởng về sau, còn test hết thì công số nhiều. Xem xét có thể giảm số màn test ở đây không? Nếu có ai sẽ quyết định? 
-- Hạn chế thay đổi spec vì có những ticket khi thay đổi phải update và sửa lại ở nhiều màn
-- Phía JP chốt spec chắc chắn và phản hồi nhanh hơn 10/27/2025 11:01:51 hoa.nguyen@drjoy.vn Dev11 6 Execute test Tạo test case Study Chuẩn bị môi trường và data test, Execute test Study, Tạo test viewpoint, Tạo test case 10 Có thể giảm quy trình test trên môi trường jackfruit và đi test bắt đầu từ môi trường develop Hoặc tìm hiểu thêm các công cụ cho automation test nhanh hơn 
-10/27/2025 11:10:42 anh.le@drjoy.vn Dev3 7 Execute test Study Chuẩn bị môi trường và data test Study, Tạo test viewpoint, Review test viewpoint, Tạo test case Study, Tạo test viewpoint, Review test viewpoint, Tạo test case 20
-Tester :
-- Tạo test viewpoint, testcase chi tiết, rõ ràng, dễ hiểu. Chuẩn bị data test, làm rõ định hướng test của task trước khi bước vào gia đoan test trên các môi trường
-- Cần kiểm soát và theo dõi được tiến độ của task
-- Log bug cần mô tả chi tiết, rõ ràng 
-- Verify bug cần có envidence Team :
-- BA bàn giao SRS chi tiết, rõ ràng, dễ hiểu. Phản hồi QA kịp thời và chi tiết.
-- Dev : Cần thực hiện hoàn thành việc test viewpoint trước khi bàn giao cho tester.
-N/A
-10/27/2025 11:18:57 hien.pham2@drjoy.vn Dev11 3 Execute test Tạo test case Study Study, Tạo test viewpoint, Tạo test case Tạo test viewpoint, Tạo test case 5
-Theo em, có thể áp dụng cách sau để tăng năng suất: 1. Xây dựng và duy trì bộ tài liệu Spec chuẩn cho từng chức năng, mục đích:
-- Tra cứu nhanh cho member hiện tại, thuận tiện khi cần xác nhận behavior cũ.
-- Hỗ trợ cho member mới, giúp nắm bắt hệ thống nhanh hơn.
-- Làm cơ sở cho các công cụ AI tạo test case tự động, vì tool cần đối chiếu giữa spec hiện tại và spec cũ để nhận diện thay đổi. 2. Áp dụng công cụ automation cho việc test Teirei và tạo dữ liệu test, mục đích:
-- Tự động tạo data test, thay vì nhập tay thủ công.
-- Thực hiện các test lặp lại (như Teirei) một cách nhanh chóng, nhất quán.
-10/27/2025 11:25:55 lan.duong@drjoy.vn Dev7 6 Study Chuẩn bị môi trường và data test Tạo test viewpoint Tạo test viewpoint, Review test viewpoint, Tạo test case Tạo test viewpoint, Review test viewpoint, Tạo test case 20
-- Chuẩn hóa tài liệu đầu vào: Spec rõ ràng, yêu cầu team JP gửi spec theo template chuẩn (bao gồm field “mục tiêu kiểm thử”, “điều kiện tiền đề”, “case ví dụ”). Cho phép tester review spec sớm để giảm thời gian trao đổi
-- Sử dụng tool để tạo test data nhanh hơn, ví dụ data beacon cần tạo phía dev7 rất tốn thời gian vì thực hiện nhiều bước
-Từ tool AI của dev6, có thể triển khai thêm chức năng tạo test data beacon thì sẽ càng tốt
-10/27/2025 11:33:46 nga.tran@drjoy.vn Dev1 7 Tạo test case Execute test Study Study, Tạo test viewpoint, Tạo test case, Chuẩn bị môi trường và data test, Execute test Study, Chuẩn bị môi trường và data test 3
-- Với các service nên có TCs và spec final thông tin data base, để khi tester mới vào team hoặc từ team khác join service mới có thể chủ động tìm hiểu spec liên quan => giúp tester chủ động trong công việc, không mất thời gian chờ đợi team khác có effort rảnh mới transfer
-- Với spec : hiện tại spec ở dạng khá sơ sài, một số task nội dung JP viết không đúng với thực tế và được dịch word by word nên gây khó hiểu cho team, phải QA nhiều
-- Task: việc chuẩn bị task trước mỗi relelase của JP là chưa tốt, đôi khi thiếu task hoặc thêm task ở giai đoạn test. Việc không chuẩn bị task tốt trước mỗi release gây tốn effort khi phải update WBS liên tục, mất tập trung đôi khi là khó chịu khi ở các giai đoạn giữa hoặc cuối thì lại start task mới.
-- Việc est và commit đúng thời gian so với plan của bên Dev là rất quan trọng, ảnh hưởng đến plan và time test của tester
-- Đào tạo - chuẩn hóa kĩ năng test API, DB
-10/27/2025 12:47:26 nhung.nguyen@drjoy.vn Dev3 3 Execute test Chuẩn bị môi trường và data test Tạo test case Study, Tạo test viewpoint, Review test viewpoint, Tạo test case Study, Tạo test viewpoint, Review test viewpoint, Tạo test case 10 NA n8n, gemini, chat gpt
-10/27/2025 13:29:04 yen.phan@drjoy.vn Dev9 8 Tạo test case Execute test Verify bug Tạo test viewpoint, Tạo test case Tạo test viewpoint, Tạo test case 10
-- Team BA/JP cần xác định scope cần phải đối ứng 1 cách chi tiết ngay từ đầu
-- Design cần được hoàn thiện 99% trước khi team phát triển join vào, hạn chế thay đổi design ít nhất có thể
-- Spec cần được mô tả cụ thể, đầy đủ từng item, không được làm spec dạng chung chung
-- Đối với spec có logic phức tạp, cần được mô tả đưới dạng flow, mockup...
-- Phía JP, hạn chế thêm các CR rắc rối trong giai đoạn cuối của release
-- Phía Dev cần đánh giá chính xác phạm vi ảnh hưởng trước và sau khi coding done.
-- Team tester cần tìm hiểu thêm spec các màn hình liên quan của team khác đang phát triển, để chủ động test ảnh hưởng
-N/A
-10/27/2025 15:34:05 tra.pham2@drjoy.vn Dev10 4 Tạo test case Execute test Verify bug Study, Tạo test viewpoint, Review test viewpoint, Tạo test case, Chuẩn bị môi trường và data test Study, Tạo test viewpoint, Tạo test case 20 Đối với những ticket lớn, cần phía JP chốt đươc scope làm việc sớm cho team, tránh việc thay đổi request liên tục, muộn dẫn đến việc tester,dev cũng không có nhiều thời gian đối ứng
-10/27/2025 15:34:25 anh.nguyen2@drjoy.vn Dev9 6 Tạo test case Tạo test viewpoint Execute test Study, Tạo test viewpoint, Review test viewpoint, Tạo test case, Chuẩn bị môi trường và data test Tạo test viewpoint, Tạo test case, Chuẩn bị môi trường và data test 20
-- SRS rõ ràng, chi tiết để sử dụng AI hiệu quả hơn trong create TCs, viewpoint
-- Giới hạn số lần CR trong thời gian cho phép
-- Tiêu chí UAT
-10/27/2025 15:38:36 thao.nguyen@drjoy.vn Dev9 6 Execute test Tạo test case Verify bug Study, Tạo test viewpoint, Tạo test case, Execute test Study, Tạo test viewpoint, Tạo test case 20 JP cung cấp spec, design sớm, tránh CR nhiều
-10/27/2025 15:46:39 minh.nguyen@drjoy.vn Dev5 8 Tạo test viewpoint Chuẩn bị môi trường và data test Verify bug Chuẩn bị môi trường và data test, Execute test Chuẩn bị môi trường và data test, Execute test 5
-1. Từ bước Viewpoint -> Testcase có thể áp dụng 1 tool để gen Viewpoint thành Testcase để tiết kiệm thời gian. Tuy nhiên thời gian test ticket đang nhiều nên chưa có thời gian nghiên cứu tool được 2. Trước khi áp dụng tool AI nào nên check lại thời gian kiểm tra lại output của nó. Vì nhiều khi thời gian này lại làm tăng công số verify N/A
-10/27/2025 15:50:11 anh.hoang@drjoy.vn Dev12 4 Execute test Tạo test case Study Tạo test viewpoint, Tạo test case Tạo test viewpoint, Tạo test case 20 Em nghĩ là việc test hơi nhiều môi trường. Nên bớt 1 môi trường jack hoặc dev 
-10/27/2025 15:55:07 ngoc.le@drjoy.vn Dev11 7 Study Execute test Tạo test case Execute test, Tạo test case Tạo test case 5
- 1. Tài liệu : BA cần mô tả chi tiết các chức năng, tránh mô tả chung chung (vd: giữ nguyên logic, làm giống chúc năng A,.....) Các chức năng ảnh hưởng cần được liệt kê và đề cập trong buổi tranfer ticket. 2. Thường xuyên cập nhật các tài liệu overview cho các chức năng. 3. Dev: Cần khoanh vùng chức năng ảnh hưởng, chủ động trao đổi giải pháp, tránh tình huống hiểu sai yêu cầu của BA ngay từ đầu. 3. Tester: Cần tiền hiểu spec hơn để phán đoán được độ ảnh hưởng, trao đổi với dev về scope test. 4. Test nhiều môi trường: Đề xuất bỏ jack or dev .
-N/A
-10/27/2025 15:58:22 phuong.luu@drjoy.vn Dev8 5 Tạo test case Tạo test viewpoint Review test viewpoint Không thể sử dụng Không sử dụng 0 Em không có góp ý gì Em không có góp ý gì 10/27/2025 16:43:17 trang.le2@drjoy.vn Dev9 7 Tạo test case Study Tạo test viewpoint Study, Tạo test viewpoint, Tạo test case, Chuẩn bị môi trường và data test, Execute test Study, Tạo test viewpoint, Tạo test case, Chuẩn bị môi trường và data test 0 Muốn áp dụng AI vào khâu create viewpoint/ Tcs thì spec phải được BA trình bày một cách logic đồng thời spec cũng phải clear thì AI mới hiểu để thực thi
-10/27/2025 17:43:16 trang.nguyen3@drjoy.vn Dev6 4 Tạo test viewpoint Tạo test case Execute test Tạo test viewpoint, Chuẩn bị môi trường và data test, Execute testTạo test viewpoint, Chuẩn bị môi trường và data test, Execute test 20
-Dev: Bàn giao cần đúng với tiến độ đã lên plan từ đầu, nếu chậm thì cần báo sớm để có phương án kịp thời Tester: 
-- Dev bàn giao muộn dẫn tới không có nhiều thời gian để verify lại dẫn đến dễ lack bug
-- Có nhiều trường hợp spec update nhiều lần dẫn đến mất thời gian update lại testcase, và excute test lại
-- Sau mỗi trường hợp lack bug thì cần bổ sung thêm quan điểm test có bản thân Comtor/BA: Spec rõ ràng và chi tiết hơn 10/27/2025 18:03:28 nhung.pham@drjoy.vn Dev2 4 Execute test Study Tạo test viewpoint Tạo test viewpoint, Tạo test case, Chuẩn bị môi trường và data testChuẩn bị môi trường và data test 5
-1. Mong muốn có spec tổng hợp, được update thường xuyên giúp công việc study thuận lợi hơn, biết đâu là đúng sai (có sheet history để relate đến các ticket thay đổi) 2. Có 1 bộ testcase chuẩn của các màn, được cập nhật khi có thay đổi (có sheet history để relate đến các ticket thay đổi)
-10/27/2025 18:15:10 thu.nguyen2@drjoy.vn Dev2 4 Study Tạo test viewpoint Tạo test case Tạo test viewpoint, Tạo test case, Execute test Không sử dụng 0
-- Phía JP: phản hồi chậm, không chốt sớm vấn đề (VD: confirm có xử lý 1 chức năng AI trên mobile không nhưng 4 ngày mới có câu trả lời => ảnh hưởng đến việc est tổng thời gian cho 1 sprint , không biết thừa hay thiếu để nhận thêm hoặc từ chối task)
-- Team: cần retro đều đặn để có thể giải quyết các vấn đề kịp thời . =>> Việc được phản hồi sớm spec/issue/các vấn đề confirm với bên JP se tiết kiệm thời gian cho tất cả các bên, các vấn đề được xử lý sớm sẽ ít rủi ro hơn cho tất cả các khía cạnh (thời gian, chi phí, chất lượng...)
-10/27/2025 18:16:06 chi.nguyen@drjoy.vn Dev5 5 Chuẩn bị môi trường và data test Tạo test case Study Tạo test viewpoint, Review test viewpoint Không sử dụng 0 Mong muốn khi có ticket được nhận về team phụ trách thì phía JP hoặc phía BA đã có đầy đủ expect, để khi bắt đầu study, nếu trong team đặt câu hỏi thì phía BA hoặc phía JP có thể trả lời, không phải đợi phía khách hàng, đỡ mất thời gian chờ. 
-10/27/2025 18:38:44 hai.nguyen3@drjoy.vn Dev2 6 Execute test Tạo test case Study Study, Tạo test viewpoint, Review test viewpoint, Tạo test case, Chuẩn bị môi trường và data test, Execute test Study, Tạo test viewpoint, Tạo test case, Chuẩn bị môi trường và data test 10
-- Hiện trạng: Phía JP: Đầu ticket báo về muộn, spec không đầy đủ mơ hồ, design lộn xộn, không có roadmap của hệ thống dẫn đến. 1. Xây hệ thống SM ngược từ booking -> master data (đáng lẽ phải từ master -> booking) mới gây ra conflict giữa code mới và code cũ, spec màn này với màn khác, testing bị chồng chéo khó xác định scope team phụ trách. 2. JP thông báo bỏ các màn hình đã tốn 3 tháng để hoàn thành (SM0009, SM0010 cũ) gây lãng phí resource, gây cho đội phát triển tâm lý làm ra xong lại đập đi. 4. BA không có thời gian để nghiên cứu tất cả các phần ảnh hưởng, phải đi confirm lại design nhiều lần. 5. Dev code không có thời gian self test và bàn giao luôn hoặc không keep được deadline bàn giao, nhiều bug do không có thời gian self test. 6. Tester nhận bàn giao muộn, chỉ chạy theo TCs, không có thời gian free test, áp lực thời gian release nên chưa đánh giá được hết phạm vi ảnh hưởng. 7. Để vẫn dụng AI và Automation test thì cần có thời gian để áp dụng, không phải nói là áp dụng được luôn, áp lực thời gian release dẫn đến không có thời gian áp dụng 2 phần này. + Review TCs có đúng spec hay chưa + Chỉnh sửa promt hoặc chỉnh sửa TCs, TVP Hiện tại theo dự án n8n thì chất lượng TCs chưa đúng, mà ngồi chỉnh sửa thì bằng công viết lại từ đầu. Dự án Automation Testing của anh Tiến rất hay nhưng không có thời gian để cài cắm, nghiên cứu và trải nghiệm.
-- Góp ý 1. Quan trọng nhất từ step đầu tiên bên phía JP: báo sớm ticket, define spec rõ ràng tránh mơ hồ, design rõ ràng cái gì không còn thì xóa bỏ
-2. Dev estimate đủ, thực hiện selft test và bàn giao đúng hạn 3. Tester vận dụng AI để viết tcs, viewpoint Vận dụng automation test để giảm thời gian test manual 4. Có 1,2 sprint giảm thiểu lượng ticket để chừa lại effort nghiên cứu và áp dụng AI, Automation test, sau đó quen thì mới áp dụng lúc đó mới thấy được % công số giảm được khi sử dụng AI, automation test 10/28/2025 11:10:18 phuong.tran@drjoy.vn Dev7 7 Tạo test viewpoint Tạo test case Execute test Tạo test viewpoint, Review test viewpoint, Tạo test case, Chuẩn bị môi trường và data test Tạo test viewpoint, Review test viewpoint, Tạo test case 20 Tài liệu hóa nghiệp vụ các màn hình hiện tại một cách có hệ thống, để có thể sử dụng phổ biến AI vào các ticket phát triển thêm tính năng mới cho màn hình cũ, hoặc ticket sửa bug`;
-
-// ---- Heuristic parsing ----
-const stepLabels = [
-  "Study",
-  "Tạo test viewpoint",
-  "Review test viewpoint",
-  "Tạo test case",
-  "Chuẩn bị môi trường và data test",
-  "Execute test",
-  "Verify bug"
-];
-
-// Count each step by literal occurrences (approximation)
-const stepCounts = stepLabels.map(label => {
-  const regex = new RegExp(label.replace(/[.*+?^{}()|[\]\\]/g, '\\$&'), "g");
-  const m = raw.match(regex);
-  return m ? m.length : 0;
-});
-
-// Extract respondents (timestamp, email, team, years, comment snippet)
-const rows = [];
-const entryRegex = /(\d{2}\/\d{2}\/\d{4}\s+\d{1,2}:\d{2}:\d{2})\s+([^\s]+@drjoy\.vn)\s+(Dev\d+)\s+(\d+)\s+([\s\S]*?)(?=\n\d{2}\/\d{2}\/\d{4}|$)/g;
-let m;
-while ((m = entryRegex.exec(raw)) !== null) {
-  const snippet = (m[5] || "").trim().replace(/\s+/g, " ").slice(0, 140);
-  rows.push({
-    ts: m[1], email: m[2], team: m[3], years: Number(m[4]), snippet
-  });
-}
-
-// ---- KPIs ----
-$("#kpiRespondents").text(rows.length);
-$("#kpiTeams").text(new Set(rows.map(r => r.team)).size);
-const topIdx = stepCounts.indexOf(Math.max(...stepCounts));
-$("#kpiTopStep").text(stepLabels[topIdx] || "—");
-
-// ---- Chart ----
-const ctx = document.getElementById("chartSteps").getContext("2d");
-new Chart(ctx, {
-  type: "bar",
-  data: {
-    labels: stepLabels,
-    datasets: [{
-      label: "Count",
-      data: stepCounts
-    }]
-  },
-  options: {
-    responsive: true,
-    plugins: {
-      legend: { display: false }
-    },
-    scales: {
-      x: { ticks: { maxRotation: 30, minRotation: 0 } },
-      y: { beginAtZero: true }
+    function setLang(lang){
+      if(lang === 'vi'){
+        root.classList.remove('show-ja');
+        root.classList.add('show-vi');
+        btnVI.classList.add('active');
+        btnJA.classList.remove('active');
+        btnVI.setAttribute('aria-selected','true');
+        btnJA.setAttribute('aria-selected','false');
+        document.documentElement.lang = 'vi';
+        document.title = 'Báo cáo bottleneck quy trình test – VI/JA';
+        localStorage.setItem('reportLang','vi');
+      } else {
+        root.classList.remove('show-vi');
+        root.classList.add('show-ja');
+        btnJA.classList.add('active');
+        btnVI.classList.remove('active');
+        btnJA.setAttribute('aria-selected','true');
+        btnVI.setAttribute('aria-selected','false');
+        document.documentElement.lang = 'ja';
+        document.title = 'テスト工程ボトルネック分析レポート – VI/JA';
+        localStorage.setItem('reportLang','ja');
+      }
     }
-  }
-});
 
-// ---- Top terms from comments (very simple tokenizer) ----
-const stop = new Set(["các","và","là","được","cần","đến","khi","của","vì","theo","để","nên","có","cho","như","đã","trên","thì","đang","nếu","với","không","rõ","spec","JP","BA","Dev","team","tester","test","AI","automation","tool","ticket","CR","TCs","viewpoint","case","màn","môi","trường"]);
-const textForTerms = raw.toLowerCase().replace(/[^a-z0-9À-ỹ\s]/g, " ");
-const terms = textForTerms.split(/\s+/).filter(t => t && !stop.has(t) && t.length > 3);
-const freq = {}
-terms.forEach(t => freq[t] = (freq[t]||0)+1);
-const top = Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0, 30);
-$("#topTerms").html(top.map(([w,c]) => `<span class="pill">${w} <span class="text-gray-400">(${c})</span></span>`).join(" "));
+    btnVI.addEventListener('click', () => setLang('vi'));
+    btnJA.addEventListener('click', () => setLang('ja'));
 
-// ---- Table ----
-function renderTable(filter="") {
-  const body = $("#respBody");
-  body.empty();
-  const q = filter.trim().toLowerCase();
-  rows.filter(r => !q || r.email.toLowerCase().includes(q) || r.team.toLowerCase().includes(q))
-      .forEach(r => body.append(`
-        <tr class="border-t">
-          <td class="p-2">${r.ts}</td>
-          <td class="p-2">${r.email}</td>
-          <td class="p-2">${r.team}</td>
-          <td class="p-2">${r.years}</td>
-          <td class="p-2">${r.snippet}</td>
-        </tr>`));
-}
-renderTable();
-$("#searchBox").on("input", function() { renderTable($(this).val()); });
-
-// ---- Download JSON ----
-$("#downloadData").on("click", function() {
-  const blob = new Blob([JSON.stringify(rows, null, 2)], {type: "application/json"});
-  const url = URL.createObjectURL(blob);
-  $(this).attr("href", url);
-});
-
-// Default language VN
-setLang("vi");
-</script>
+    // restore preference
+    const saved = localStorage.getItem('reportLang');
+    if(saved === 'ja') setLang('ja');
+  </script>
 </body>
 </html>

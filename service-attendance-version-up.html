@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Báo cáo nâng cấp Spring Boot & Java — VI/JA</title>
+  <style>
+    :root{
+      --bg: #0b1220;
+      --card: #111a2b;
+      --muted: #a5b4fc;
+      --text: #e5e7eb;
+      --accent: #60a5fa;
+      --accent-2:#34d399;
+      --danger:#fb7185;
+      --shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;height:100%;font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";color:var(--text);background: radial-gradient(1000px 500px at 10% -10%, #192443 0, rgba(25,36,67,0) 60%), radial-gradient(800px 400px at 90% -20%, #1a2b52 0, rgba(26,43,82,0) 60%), var(--bg)}
+    a{color:var(--accent)}
+    .container{max-width:1100px;margin:0 auto;padding:24px}
+    .toolbar{position:sticky;top:0;backdrop-filter:blur(8px);background:rgba(11,18,32,.6);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:10px 14px;display:flex;align-items:center;gap:10px;z-index:10}
+    .toolbar h1{font-size:18px;margin:0;letter-spacing:.3px}
+    .spacer{flex:1}
+    .btn{appearance:none;border:1px solid rgba(255,255,255,.1);background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));color:var(--text);padding:8px 12px;border-radius:12px;cursor:pointer;box-shadow:var(--shadow);font-weight:600}
+    .btn:hover{border-color:rgba(255,255,255,.2)}
+    .toggle{display:inline-flex;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,.12)}
+    .toggle button{border:0;background:transparent;color:var(--text);padding:8px 12px;cursor:pointer}
+    .toggle button.active{background:linear-gradient(180deg, rgba(96,165,250,.2), rgba(96,165,250,.05));}
+
+    .grid{display:grid;grid-template-columns:1fr;gap:16px;margin-top:16px}
+    @media(min-width:900px){.grid{grid-template-columns:1fr 1fr}}
+
+    .card{background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:18px;box-shadow:var(--shadow)}
+    .card h2{margin-top:0;font-size:20px;color:#c7d2fe}
+    .muted{color:#9ca3af}
+    .badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+    .badge{padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.12);font-size:12px}
+
+    .list{padding-left:18px}
+    .list li{margin:6px 0}
+
+    .risk{border-left:4px solid var(--danger);padding-left:12px}
+    .ok{border-left:4px solid var(--accent-2);padding-left:12px}
+
+    .two-col{columns:1;column-gap:24px}
+    @media(min-width:900px){.two-col{columns:2}}
+
+    .footer{opacity:.8;margin:24px 0 8px;text-align:center;font-size:12px}
+
+    [data-lang]{display:none}
+    [data-lang].show{display:block}
+
+    /* Print */
+    @media print{
+      body{background:#fff;color:#000}
+      .toolbar{position:static;background:#fff;border:0}
+      .card{break-inside:avoid}
+      a{color:#000}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="toolbar">
+      <h1>📘 Báo cáo nâng cấp Spring Boot & Java</h1>
+      <div class="spacer"></div>
+      <div class="toggle" role="tablist" aria-label="Language toggle">
+        <button id="btn-vi" class="active" aria-selected="true" role="tab">🇻🇳 Tiếng Việt</button>
+        <button id="btn-ja" aria-selected="false" role="tab">🇯🇵 日本語</button>
+      </div>
+      <button class="btn" onclick="window.print()">🖨️ In / Print</button>
+    </div>
+
+    <!-- Vietnamese -->
+    <section data-lang="vi" class="show">
+      <div class="card">
+        <h2>1) Tóm tắt điều hành</h2>
+        <p>Dự án nâng cấp nền tảng từ <strong>Spring Boot 2.x + Java 8</strong> ➜ <strong>Spring Boot 3.3.1 + JDK 21</strong> đã hoàn tất phần đối ứng mã nguồn, kiểm thử local chưa phát hiện lỗi, và có kế hoạch phát hành dần trên các môi trường trong <strong>tháng 12</strong>. Thiết lập chiến lược nhánh song song để đảm bảo rollback nhanh khi cần.</p>
+        <div class="badges">
+          <span class="badge">Spring Boot 3.3.1</span>
+          <span class="badge">JDK 21 (LTS)</span>
+          <span class="badge">Mockito 5.2</span>
+          <span class="badge">Jacoco 0.8.10</span>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h2>2) Phạm vi & mục tiêu</h2>
+          <ul class="list">
+            <li>Phạm vi: starter gRPC, dịch vụ dùng MongoDB, cấu hình Spring, unit test và plugin build.</li>
+            <li>Mục tiêu: nâng <strong>Spring 3.3.1</strong> + <strong>JDK 21</strong>, xử lý breaking changes, bỏ PowerMock ➜ <strong>Mockito 5.2</strong>, duy trì nhánh backup cho Java 8.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h2>3) Hạng mục kỹ thuật đã đối ứng</h2>
+          <div class="two-col">
+            <ul class="list">
+              <li>Tạo version mới: <code>grpc-*-starter</code>, <code>grpc-starter-parent</code>.</li>
+              <li>Nâng <strong>Spring</strong> ➜ 3.3.1; <strong>JDK</strong> ➜ 21; <strong>Jacoco</strong> 0.8.10.</li>
+              <li>Thay đổi API: <code>new Sort</code> ➜ <code>Sort.by</code>; <code>PageRequest</code> mới; <code>javax.*</code> ➜ <code>jakarta.*</code>.</li>
+              <li>Mongo: <code>MongoClient</code> cũ ➜ <code>MongoClients.create()</code>; stream iterator mới; <code>BSON</code> ➜ <code>Document</code>.</li>
+              <li>Mockito: <code>verifyZeroInteractions</code> ➜ <code>verifyNoInteractions</code>; <code>anyListOf</code> ➜ <code>anyList()</code>.</li>
+              <li>YAML: <code>spring.profiles</code> ➜ <code>spring.config.activate.on-profile</code>.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h2>4) Chiến lược nhánh & triển khai</h2>
+          <ul class="list">
+            <li>Nhánh mới: <code>develop-v21</code>, <code>dev-jackfruit-v21</code> (Java 21 + Spring 3.3.1).</li>
+            <li>Nhánh backup: <code>develop-old</code>, <code>jackfruit-old</code>, <code>staging-old</code>, <code>master-old</code> (Java 8 + SB 2.x).</li>
+            <li>Infra trỏ dịch vụ sang nhánh v21 ở môi trường develop/jackfruit; <em>staging</em> và <em>master</em> merge trực tiếp version mới.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h2>5) Kế hoạch kiểm thử</h2>
+          <ul class="list">
+            <li><strong>Local</strong>: đã test, chưa ghi nhận lỗi.</li>
+            <li><strong>Môi trường phát triển</strong>: Tester chạy test theo ticket trên version mới; sau khi pass develop, Infra có thể <em>switch tạm</em> về version cũ để đối chiếu (teirei).</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h2>6) Lịch trình</h2>
+          <ul class="list">
+            <li>Local: hoàn tất kiểm thử.</li>
+            <li>Jackfruit/Develop/Staging/Master: triển khai theo đợt trong <strong>tháng 12</strong>.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h2>7) Ước lượng công sức</h2>
+          <ul class="list">
+            <li>Dev: ≤ <strong>40 giờ</strong></li>
+            <li>Tester: ≤ <strong>300 giờ</strong></li>
+            <li>Infra: <strong>16 giờ</strong></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>8) Rủi ro & phương án giảm thiểu</h2>
+        <ul class="list">
+          <li class="risk"><strong>Không tương thích API</strong> khi lên Spring 3/JDK 21 → Đã refactor & lên danh mục breaking changes + test hồi quy.</li>
+          <li class="risk"><strong>Công cụ test lỗi</strong> với Java 21 → Bỏ PowerMock, dùng Mockito 5.2, cập nhật unit tests.</li>
+          <li class="ok"><strong>Rollback chậm</strong> nếu 1 nhánh: duy trì nhánh <em>-old</em> song song để chuyển nhanh.</li>
+          <li class="ok"><strong>Cấu hình môi trường</strong> không đồng bộ → Quy trình trỏ/merge/switch rõ ràng giữa các môi trường.</li>
+        </ul>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h2>9) Kế hoạch hành động</h2>
+          <h3>Dev</h3>
+          <ul class="list">
+            <li>Hoàn tất đẩy code vào nhánh v21 theo checklist.</li>
+            <li>Rà soát unit test (không PowerMock), giữ coverage.</li>
+          </ul>
+          <h3>Tester</h3>
+          <ul class="list">
+            <li>Lập test plan theo ticket trên jackfruit/develop rồi đến staging.</li>
+            <li>Đối chiếu <em>teirei</em> khi Infra switch tạm về version cũ.</li>
+          </ul>
+          <h3>Infra</h3>
+          <ul class="list">
+            <li>Cấu hình route dịch vụ tới nhánh v21.</li>
+            <li>Khi pass: merge vào develop/jackfruit; trên staging/master merge trực tiếp version mới.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h2>10) Kết luận & Phụ lục A</h2>
+          <p>Dự án có lộ trình rõ, thay đổi chi tiết và kịch bản dự phòng. Trọng số công việc ở kiểm thử hồi quy. Rủi ro triển khai trong tháng 12 ở mức kiểm soát được.</p>
+          <p><strong>Cheatsheet:</strong> Sort ➜ <code>Sort.by</code> · <code>PageRequest.of()</code> · <code>MongoClients.create()</code> · <code>jakarta.*</code> · YAML <code>spring.config.activate.on-profile</code> · Mockito <code>verifyNoInteractions</code>/<code>anyList()</code>.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Japanese -->
+    <section data-lang="ja">
+      <div class="card">
+        <h2>1) エグゼクティブサマリー</h2>
+        <p>本プロジェクトは、基盤を <strong>Spring Boot 2.x + Java 8</strong> から <strong>Spring Boot 3.3.1 + JDK 21</strong> へ移行します。ソースコード対応は完了し、ローカル検証では不具合なし。<strong>12月</strong>中に各環境へ段階的にリリース予定です。ロールバック迅速化のため、並行ブランチ戦略を採用します。</p>
+        <div class="badges">
+          <span class="badge">Spring Boot 3.3.1</span>
+          <span class="badge">JDK 21 (LTS)</span>
+          <span class="badge">Mockito 5.2</span>
+          <span class="badge">Jacoco 0.8.10</span>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h2>2) 範囲と目標</h2>
+          <ul class="list">
+            <li>範囲：gRPC スターター、MongoDB を利用するサービス、Spring 設定、ユニットテスト、ビルドプラグイン。</li>
+            <li>目標：<strong>Spring 3.3.1</strong> と <strong>JDK 21</strong> へのアップグレード、ブレイキングチェンジ対応、PowerMock 廃止 → <strong>Mockito 5.2</strong>、Java 8 系のバックアップブランチ維持。</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h2>3) 技術対応内容</h2>
+          <div class="two-col">
+            <ul class="list">
+              <li>新バージョン作成：<code>grpc-*-starter</code>、<code>grpc-starter-parent</code>。</li>
+              <li><strong>Spring</strong> 3.3.1、<strong>JDK</strong> 21、<strong>Jacoco</strong> 0.8.10 に更新。</li>
+              <li>API 変更：<code>new Sort</code> → <code>Sort.by</code>、新 <code>PageRequest</code>、<code>javax.*</code> → <code>jakarta.*</code>。</li>
+              <li>Mongo：旧 <code>MongoClient</code> → <code>MongoClients.create()</code>、新しいストリーム iterator、<code>BSON</code> → <code>Document</code>。</li>
+              <li>Mockito：<code>verifyZeroInteractions</code> → <code>verifyNoInteractions</code>、<code>anyListOf</code> → <code>anyList()</code>。</li>
+              <li>YAML：<code>spring.profiles</code> → <code>spring.config.activate.on-profile</code>。</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h2>4) ブランチ戦略とデプロイ</h2>
+          <ul class="list">
+            <li>新ブランチ：<code>develop-v21</code>、<code>dev-jackfruit-v21</code>（Java 21 + Spring 3.3.1）。</li>
+            <li>バックアップ：<code>develop-old</code>、<code>jackfruit-old</code>、<code>staging-old</code>、<code>master-old</code>（Java 8 + SB 2.x）。</li>
+            <li>Infra：開発系（develop/jackfruit）では v21 ブランチへルーティング。<em>staging</em> と <em>master</em> は新バージョンを直接マージ。</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h2>5) テスト計画</h2>
+          <ul class="list">
+            <li><strong>ローカル</strong>：検証済み、問題なし。</li>
+            <li><strong>開発環境</strong>：テスターは新バージョンでチケットに沿ってテスト。develop 通過後、比較検証（定例／ていれい）用に旧バージョンへ一時的に切替可能。</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h2>6) スケジュール</h2>
+          <ul class="list">
+            <li>ローカル：検証完了。</li>
+            <li>Jackfruit／Develop／Staging／Master：<strong>12月</strong>に段階的リリース。</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h2>7) 工数見積り</h2>
+          <ul class="list">
+            <li>Dev：最大 <strong>40 時間</strong></li>
+            <li>Tester：最大 <strong>300 時間</strong></li>
+            <li>Infra：<strong>16 時間</strong></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>8) リスクと対策</h2>
+        <ul class="list">
+          <li class="risk"><strong>API 非互換</strong>（Spring 3／JDK 21）→ ブレイキングチェンジ一覧に基づきリファクタし、回帰テストを実施。</li>
+          <li class="risk"><strong>テストツール非対応</strong>（Java 21）→ PowerMock を廃止し Mockito 5.2 へ移行、ユニットテストを更新。</li>
+          <li class="ok"><strong>ロールバックの遅延</strong> → <em>-old</em> 系ブランチを維持し迅速切替。</li>
+          <li class="ok"><strong>環境設定の不整合</strong> → 環境ごとのルーティング／マージ／スイッチ手順を明確化。</li>
+        </ul>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h2>9) アクションアイテム</h2>
+          <h3>Dev</h3>
+          <ul class="list">
+            <li>v21 ブランチへコード反映（チェックリストに従う）。</li>
+            <li>PowerMock なしでユニットテストを見直し、カバレッジを維持。</li>
+          </ul>
+          <h3>Tester</h3>
+          <ul class="list">
+            <li>jackfruit／develop → staging の順でチケットに基づくテスト計画・実施。</li>
+            <li>旧バージョンへ一時切替して機能同等性を確認（ていれい）。</li>
+          </ul>
+          <h3>Infra</h3>
+          <ul class="list">
+            <li>サービスのルートを v21 ブランチへ設定。</li>
+            <li>合格後：develop／jackfruit にマージ。staging／master は新バージョンを直接マージ。</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h2>10) 結論と付録A</h2>
+          <p>計画・変更点・バックアップ方針は明確。工数の中心は回帰テスト。12月リリースのリスクは管理可能な水準です。</p>
+          <p><strong>チートシート：</strong> Sort → <code>Sort.by</code>、<code>PageRequest.of()</code>、<code>MongoClients.create()</code>、<code>jakarta.*</code>、YAML <code>spring.config.activate.on-profile</code>、Mockito <code>verifyNoInteractions</code>/<code>anyList()</code>。</p>
+        </div>
+      </div>
+    </section>
+    <div class="card">
+          <h2>PR</h2>
+          <a href="https://github.com/dr-joy/grpc-starter-parent/pull/4">grpc-starter-parent</a><br>
+          <a href="https://github.com/dr-joy/grpc-server-starter/pull/4">grpc-server-starter</a><br>
+          <a href="https://github.com/dr-joy/grpc-client-starter/pull/4">grpc-client-starter</a><br>
+          <a href="https://github.com/dr-joy/service-attendance/pull/12554">service-attendance</a><br>
+    </div>
+    <p class="footer">© 2025 Dr.JOY — Báo cáo trình bày song ngữ (VI/JA). Nhấn Print để xuất PDF đẹp.</p>
+  </div>
+
+  <script>
+    const viBtn = document.getElementById('btn-vi');
+    const jaBtn = document.getElementById('btn-ja');
+    const viSec = document.querySelector('[data-lang="vi"]');
+    const jaSec = document.querySelector('[data-lang="ja"]');
+
+    function setLang(lang){
+      if(lang==='vi'){
+        viBtn.classList.add('active');
+        jaBtn.classList.remove('active');
+        viSec.classList.add('show');
+        jaSec.classList.remove('show');
+        document.documentElement.lang='vi';
+      }else{
+        jaBtn.classList.add('active');
+        viBtn.classList.remove('active');
+        jaSec.classList.add('show');
+        viSec.classList.remove('show');
+        document.documentElement.lang='ja';
+      }
+      localStorage.setItem('lang', lang);
+    }
+
+    viBtn.addEventListener('click', ()=>setLang('vi'));
+    jaBtn.addEventListener('click', ()=>setLang('ja'));
+
+    // restore last choice
+    const saved = localStorage.getItem('lang');
+    if(saved){ setLang(saved); }
+  </script>
+</body>
+</html>

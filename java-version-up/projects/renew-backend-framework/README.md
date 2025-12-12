@@ -53,20 +53,20 @@ Các dịch vụ khác nhau (JDK 17, Spring Boot 3)
 
 | Tài liệu | Mô tả | Trạng thái |
 |---|---|---|
-| **[Danh sách công việc chi tiết](../../../java-version-up-2025-12-12/renew-backend-framework/detailed_plan.md)** | Nội dung công việc cụ thể theo từng giai đoạn | ✅ Mới nhất |
-| **[Tài liệu thiết kế](../../../java-version-up-2025-12-12/renew-backend-framework/architecture.md)** | Thiết kế chi tiết về kiến trúc kỹ thuật | ✅ Mới nhất |
+| **[Danh sách công việc chi tiết](detailed_plan.md)** | Nội dung công việc cụ thể theo từng giai đoạn | ✅ Mới nhất |
+| **[Tài liệu thiết kế](architecture.md)** | Thiết kế chi tiết về kiến trúc kỹ thuật | ✅ Mới nhất |
 | **[Báo cáo tiến độ lib-*](lib_projects_progress_report.md)** | Tình hình triển khai nhóm thư viện | ✅ Hoàn thành |
 | **[Hướng dẫn di chuyển dịch vụ](service_migration_guide.md)** | Quy trình di chuyển cho từng dịch vụ | ✅ Đang vận hành |
 | **[Danh sách kiểm tra di chuyển dịch vụ](service_migration_checklist.md)** | Các mục cần kiểm tra khi di chuyển | ✅ Đang vận hành |
-| **[Hướng dẫn đồng bộ masterdata](../../../java-version-up-2025-12-12/renew-backend-framework/service-framework-masterdata-sync-guide.md)** | Quy trình đồng bộ dữ liệu quyền hạn | ✅ Đang vận hành |
-| **[Chiến lược triển khai MongoDB](../../../java-version-up-2025-12-12/renew-backend-framework/masterdata-deployment-strategy.md)** | Chính sách triển khai masterdata | ✅ Mới nhất |
-| **[Ước tính công sức](../../../java-version-up-2025-12-12/renew-backend-framework/estimate.md)** | Công sức và lịch trình dự án | 📝 Tham khảo |
-| **[Biểu đồ Gantt](../../../java-version-up-2025-12-12/renew-backend-framework/gantt-chart.md)** | Kế hoạch tiến độ dự án | 📝 Tham khảo |
+| **[Hướng dẫn đồng bộ masterdata](service-framework-masterdata-sync-guide.md)** | Quy trình đồng bộ dữ liệu quyền hạn | ✅ Đang vận hành |
+| **[Chiến lược triển khai MongoDB](masterdata-deployment-strategy.md)** | Chính sách triển khai masterdata | ✅ Mới nhất |
+| **[Ước tính công sức](estimate.md)** | Công sức và lịch trình dự án | 📝 Tham khảo |
+| **[Biểu đồ Gantt](gantt-chart.md)** | Kế hoạch tiến độ dự án | 📝 Tham khảo |
 
 ### 🛠️ **Công cụ vận hành**
 | Script | Mục đích |
 |---|---|
-| **[scripts/sync-roles-to-mongodb.sh](../../../java-version-up-2025-12-12/renew-backend-framework/scripts/sync-roles-to-mongodb.sh)** | Đồng bộ quyền hạn từ service-framework sang MongoDB |
+| **[scripts/sync-roles-to-mongodb.sh](scripts/sync-roles-to-mongodb.sh)** | Đồng bộ quyền hạn từ service-framework sang MongoDB |
 
 ---
 
@@ -158,8 +158,8 @@ Thực hiện chuyển đổi service-security song song.
 
 ### **🔄 Lưu ý trong giai đoạn vận hành song song**
 - service-framework và lib-* sẽ được vận hành song song trong thời gian tới
-- Khi thay đổi quyền hạn, hãy cập nhật cả hai theo [Hướng dẫn đồng bộ](../../../java-version-up-2025-12-12/renew-backend-framework/service-framework-masterdata-sync-guide.md)
-- Việc triển khai MongoDB sẽ được sao chép vào DB của từng dịch vụ theo [Chiến lược triển khai](../../../java-version-up-2025-12-12/renew-backend-framework/masterdata-deployment-strategy.md)
+- Khi thay đổi quyền hạn, hãy cập nhật cả hai theo [Hướng dẫn đồng bộ](service-framework-masterdata-sync-guide.md)
+- Việc triển khai MongoDB sẽ được sao chép vào DB của từng dịch vụ theo [Chiến lược triển khai](masterdata-deployment-strategy.md)
 
 ### **🛡️ Chiến lược khôi phục (rollback)**
 - Sao lưu ở mỗi giai đoạn

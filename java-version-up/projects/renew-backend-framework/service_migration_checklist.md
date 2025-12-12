@@ -2,11 +2,11 @@
 
 ## 📋 Danh sách kiểm tra công việc di chuyển
 
-### Xác nhận trước
-- [ ] Xác định các dịch vụ cần di chuyển
-- [ ] Xác nhận ngăn xếp công nghệ hiện tại (phiên bản Spring Boot, phiên bản Java)
+### Kiểm tra trước
+- [ ] Xác định dịch vụ mục tiêu di chuyển
+- [ ] Kiểm tra ngăn xếp công nghệ hiện tại (phiên bản Spring Boot, phiên bản Java)
 - [ ] Xác định các chức năng được sử dụng của service-framework
-- [ ] Hoàn thành việc xây dựng trước các thư viện lib-*
+- [ ] Hoàn thành build trước các thư viện lib-*
 
 ### Giai đoạn 1: Chuẩn bị môi trường
 - [ ] Tạo nhánh feature/renew_framework
@@ -19,7 +19,7 @@
 - [ ] Xóa phụ thuộc service-framework
 - [ ] Thêm lib-common-utils
 - [ ] Thêm lib-common-models
-- [ ] Thêm các thư viện lib-* theo chức năng:
+- [ ] Thêm thư viện lib-* theo chức năng:
   - [ ] lib-spring-boot-starter-web (khi sử dụng chức năng Web)
   - [ ] lib-spring-boot-starter-security (khi sử dụng chức năng xác thực)
   - [ ] lib-spring-boot-starter-mongodb (khi sử dụng MongoDB)
@@ -27,39 +27,39 @@
   - [ ] lib-spring-boot-starter-masterdata (khi sử dụng dữ liệu chính)
 - [ ] Cập nhật phiên bản plugin Maven
 
-### Giai đoạn 3: Sửa đổi mã
-- [ ] Chạy thay thế hàng loạt gói javax → jakarta
-- [ ] Chạy thay thế hàng loạt import service-framework
-- [ ] Hỗ trợ Spring Security 6:
+### Giai đoạn 3: Sửa đổi mã nguồn
+- [ ] Thực hiện thay thế hàng loạt gói javax → jakarta
+- [ ] Thực hiện thay thế hàng loạt import của service-framework
+- [ ] Tương thích với Spring Security 6:
   - [ ] WebSecurityConfigurerAdapter → SecurityFilterChain
   - [ ] authorizeRequests → authorizeHttpRequests
 - [ ] Cập nhật cấu hình MongoDB:
   - [ ] AbstractMongoConfiguration → Định nghĩa Bean MongoClient
-- [ ] Sửa đổi riêng lẻ các lỗi biên dịch
+- [ ] Sửa lỗi biên dịch riêng lẻ
 
 ### Giai đoạn 4: Cập nhật tệp cấu hình
-- [ ] Hỗ trợ Spring Boot 3 cho application.yml
+- [ ] Tương thích application.yml với Spring Boot 3
 - [ ] Thêm cấu hình gRPC (khi sử dụng gRPC)
-- [ ] Cấu hình xác thực (tùy theo loại dịch vụ):
-  - [ ] **Dịch vụ API HTTP**: Cấu hình Máy chủ tài nguyên JWT
+- [ ] Cấu hình xác thực (theo loại dịch vụ):
+  - [ ] **Dịch vụ API HTTP**: Cấu hình JWT Resource Server
   - [ ] **Dịch vụ gRPC**: Chỉ cấu hình cơ bản (không cần cấu hình OAuth2)
-- [ ] Xác nhận cấu hình theo môi trường
+- [ ] Kiểm tra cấu hình theo môi trường
 
-### Giai đoạn 5: Kiểm thử và xác minh
+### Giai đoạn 5: Kiểm tra và xác minh
 - [ ] `mvn clean compile` thành công
 - [ ] `mvn clean test` thành công
 - [ ] `mvn spring-boot:run` khởi động thành công
-- [ ] Xác nhận hoạt động theo chức năng:
-  - [ ] **Dịch vụ API HTTP**: Xác nhận phản hồi API Web và xác thực JWT
-  - [ ] **Dịch vụ gRPC**: Xác nhận giao tiếp gRPC và bộ chặn xác thực
-  - [ ] **Khi sử dụng MongoDB**: Xác nhận kết nối và hoạt động của kho lưu trữ
+- [ ] Kiểm tra hoạt động theo chức năng:
+  - [ ] **Dịch vụ API HTTP**: Kiểm tra phản hồi Web API và xác thực JWT
+  - [ ] **Dịch vụ gRPC**: Kiểm tra giao tiếp gRPC và bộ chặn xác thực
+  - [ ] **Khi sử dụng MongoDB**: Kiểm tra kết nối và hoạt động của repository
 
-### Giai đoạn 6: Xác nhận tích hợp
-- [ ] Xác nhận tích hợp với các dịch vụ khác
-- [ ] Xác nhận tích hợp xác thực (tùy theo loại dịch vụ):
-  - [ ] **Dịch vụ API HTTP**: Tích hợp JWT với service-security hoặc service-oauth2-server
-  - [ ] **Dịch vụ gRPC**: Tích hợp bộ chặn xác thực gRPC
-- [ ] Thực hiện kiểm thử hiệu năng
+### Giai đoạn 6: Kiểm tra tích hợp
+- [ ] Kiểm tra liên kết với các dịch vụ khác
+- [ ] Kiểm tra liên kết xác thực (theo loại dịch vụ):
+  - [ ] **Dịch vụ API HTTP**: Liên kết JWT với service-security hoặc service-oauth2-server
+  - [ ] **Dịch vụ gRPC**: Liên kết bộ chặn xác thực gRPC
+- [ ] Thực hiện kiểm tra hiệu năng
 
 ---
 
@@ -71,13 +71,13 @@
 ```
 Ví dụ lỗi: cannot find symbol javax.persistence.Entity
 ```
-**Nguyên nhân**: Bỏ sót thay thế javax → jakarta
+**Nguyên nhân**: Thiếu sót khi thay thế javax → jakarta
 **Giải pháp**:
 ```bash
 # Xác định các vị trí còn lại
 find src/ -name "*.java" -exec grep -l "javax\." {} \;
 
-# Sửa đổi thủ công hoặc chạy thay thế bổ sung
+# Sửa thủ công hoặc thực hiện thay thế bổ sung
 sed -i 's/javax\.annotation\./jakarta.annotation./g' [tệp mục tiêu]
 ```
 
@@ -85,7 +85,7 @@ sed -i 's/javax\.annotation\./jakarta.annotation./g' [tệp mục tiêu]
 ```
 Ví dụ lỗi: cannot find symbol jp.drjoy.service.framework.*
 ```
-**Nguyên nhân**: Bỏ sót thay thế câu lệnh import hoặc sử dụng chức năng chưa được chuyển sang thư viện mới
+**Nguyên nhân**: Thiếu sót khi thay thế câu lệnh import hoặc sử dụng chức năng chưa được chuyển sang thư viện mới
 **Giải pháp**:
 ```bash
 # Xác định các vị trí còn lại
@@ -150,16 +150,17 @@ public class MongoConfig {
 ```
 Ví dụ lỗi: Could not find artifact jp.drjoy:lib-common-utils
 ```
-**Nguyên nhân**: Thư viện lib-* chưa được xây dựng hoặc phiên bản không khớp
+**Nguyên nhân**: Thư viện lib-* chưa được build hoặc phiên bản không khớp
 **Giải pháp**:
 ```bash
-# Xây dựng trước tất cả các thư viện lib-*
-./scripts/build-libs.sh
-
-# Hoặc xây dựng riêng lẻ
+# Build tất cả các thư viện lib-* theo thứ tự phụ thuộc
 cd work/lib-common-utils && mvn clean install
-cd work/lib-common-models && mvn clean install
-# Các lib-* khác cũng tương tự
+cd ../lib-common-models && mvn clean install
+cd ../lib-spring-boot-starter-mongodb && mvn clean install
+cd ../lib-spring-boot-starter-security && mvn clean install
+cd ../lib-spring-boot-starter-grpc && mvn clean install
+cd ../lib-spring-boot-starter-web && mvn clean install
+cd ../lib-spring-boot-starter-masterdata && mvn clean install
 ```
 
 #### 6. Lỗi xung đột phiên bản
@@ -188,16 +189,16 @@ Ví dụ lỗi: Dependency convergence error
 </dependencyManagement>
 ```
 
-### Lỗi thời gian chạy
+### Lỗi khi chạy
 
-#### 7. Khởi động ứng dụng không thành công
+#### 7. Khởi động ứng dụng thất bại
 ```
 Ví dụ lỗi: Failed to configure a DataSource
 ```
 **Nguyên nhân**: Tệp cấu hình không tương thích với Spring Boot 3
 **Giải pháp**:
 ```yaml
-# Xác nhận và sửa đổi application.yml
+# Kiểm tra và sửa application.yml
 spring:
   application:
     name: [SERVICE_NAME]
@@ -206,7 +207,7 @@ spring:
       uri: mongodb://localhost:27017/[DATABASE_NAME]
 ```
 
-#### 8. Khởi động máy chủ gRPC không thành công
+#### 8. Khởi động máy chủ gRPC thất bại
 ```
 Ví dụ lỗi: Port already in use: 9091
 ```
@@ -223,19 +224,19 @@ grpc:
     port: 9092  # Cổng có sẵn
 ```
 
-#### 9. Lỗi xác thực (tùy theo loại dịch vụ)
+#### 9. Lỗi xác thực (theo loại dịch vụ)
 
 **Trường hợp dịch vụ API HTTP:**
 ```
 Ví dụ lỗi: 401 Unauthorized / JWT validation error
 ```
-**Nguyên nhân**: Cấu hình Máy chủ tài nguyên JWT không hợp lệ hoặc máy chủ xác thực chưa được khởi động
+**Nguyên nhân**: Cấu hình JWT Resource Server không hợp lệ hoặc máy chủ xác thực chưa khởi động
 **Giải pháp**:
 ```yaml
-# Xác nhận cấu hình JWT trong application.yml
+# Kiểm tra cấu hình JWT trong application.yml
 service:
   oauth2:
-    secret-public: secret/oauth2.pub  # Xác nhận đường dẫn tệp khóa công khai
+    secret-public: secret/oauth2.pub  # Kiểm tra đường dẫn tệp khóa công khai
     resource-id: demo
 ```
 
@@ -243,24 +244,24 @@ service:
 ```
 Ví dụ lỗi: PERMISSION_DENIED (Trạng thái gRPC)
 ```
-**Nguyên nhân**: Xác thực của bộ chặn xác thực gRPC không thành công
+**Nguyên nhân**: Xác thực của bộ chặn xác thực gRPC thất bại
 **Giải pháp**:
 ```bash
-# Xác nhận rằng máy khách gRPC đang gửi mã thông báo xác thực phù hợp
-# Xác nhận cấu hình của GrpcAuthServerInterceptor
+# Kiểm tra xem máy khách gRPC có gửi mã thông báo xác thực phù hợp không
+# Kiểm tra cấu hình GrpcAuthServerInterceptor
 ```
 
 #### 10. Lỗi kết nối MongoDB
 ```
 Ví dụ lỗi: Connection refused to MongoDB
 ```
-**Nguyên nhân**: MongoDB chưa được khởi động hoặc cấu hình URI không hợp lệ
+**Nguyên nhân**: MongoDB chưa khởi động hoặc cấu hình URI không hợp lệ
 **Giải pháp**:
 ```bash
-# Xác nhận khởi động MongoDB
+# Kiểm tra khởi động MongoDB
 sudo systemctl status mongod
 
-# Xác nhận chuỗi kết nối
+# Kiểm tra chuỗi kết nối
 # application.yml
 spring:
   data:
@@ -270,7 +271,7 @@ spring:
 
 ### Lỗi kiểm thử
 
-#### 11. Kiểm thử đơn vị không thành công
+#### 11. Kiểm thử đơn vị thất bại
 ```
 Ví dụ lỗi: NoSuchMethodError in test
 ```
@@ -303,7 +304,7 @@ public void testEndpoint() throws Exception {
     .andExpect(status().isOk());
 }
 
-// Sau khi cập nhật (vô hiệu hóa Security bằng @MockBean, v.v. nếu cần)
+// Sau khi cập nhật (vô hiệu hóa Security bằng @MockBean nếu cần)
 @Test
 @WithMockUser
 @MockBean(SecurityFilterChain.class)
@@ -327,8 +328,8 @@ git checkout develop
 # 2. Xóa nhánh làm việc (nếu cần)
 git branch -D feature/renew_framework
 
-# 3. Hoặc quay lại một cam kết cụ thể
-git reset --hard [hàm băm cam kết trước đó]
+# 3. Hoặc quay lại một commit cụ thể
+git reset --hard [hàm băm commit trước đó]
 
 # 4. Đẩy bắt buộc (thực hiện cẩn thận)
 git push origin develop --force
@@ -342,8 +343,8 @@ Nếu chỉ một số chức năng có vấn đề:
 # 1. Chỉ khôi phục các tệp có vấn đề
 git checkout HEAD~1 -- [đường dẫn tệp có vấn đề]
 
-# 2. Quay lại các cam kết theo từng giai đoạn
-git revert [hàm băm cam kết có vấn đề]
+# 2. Khôi phục các commit theo giai đoạn
+git revert [hàm băm commit có vấn đề]
 
 # 3. Tạm thời vô hiệu hóa các cấu hình riêng lẻ
 # Chú thích các cấu hình có vấn đề trong application.yml
@@ -358,9 +359,9 @@ git revert [hàm băm cam kết có vấn đề]
 ### Hiểu kiến trúc xác thực
 
 **Dịch vụ API HTTP (service-web-front, service-admin, v.v.):**
-- Cần xác thực và ủy quyền bằng Mã thông báo JWT
+- Cần xác thực và ủy quyền bằng JWT Token
 - Lấy JWT từ service-oauth2-server hoặc service-security và xác minh trong mỗi yêu cầu
-- Cần có cấu hình Máy chủ tài nguyên JWT
+- Cần thiết phải có cấu hình JWT Resource Server
 
 **Dịch vụ gRPC (service-registration, v.v.):**
 - Sử dụng cơ chế xác thực gRPC riêng
@@ -369,14 +370,14 @@ git revert [hàm băm cam kết có vấn đề]
 
 ### Các điểm kiểm tra khi di chuyển
 1. Xác định kiến trúc của dịch vụ trước tiên
-2. Xác nhận sự tồn tại của các điểm cuối API HTTP
+2. Kiểm tra sự tồn tại của các điểm cuối API HTTP
 3. Chọn và cấu hình phương thức xác thực phù hợp
 
 ## 📞 Thông tin hỗ trợ
 
 ### Nơi tư vấn
 - **Vấn đề kỹ thuật**: Trưởng nhóm phát triển
-- **Vấn đề thư viện lib-***: Người phụ trách khung
+- **Vấn đề thư viện lib-***: Người phụ trách framework
 - **Kiến trúc xác thực**: Nhóm nền tảng xác thực
 
 ### Tài liệu tham khảo
@@ -385,7 +386,7 @@ git revert [hàm băm cam kết có vấn đề]
 - Hướng dẫn di chuyển Spring Boot 3 - Tài liệu chính thức
 - Hướng dẫn di chuyển Spring Security 6 - Liên quan đến xác thực
 
-### Vị trí kiểm tra nhật ký
+### Nơi kiểm tra nhật ký
 - Nhật ký ứng dụng: `logs/application.log`
 - Nhật ký gRPC: `logs/grpc.log`
 - Nhật ký Spring Boot: Đầu ra của bảng điều khiển

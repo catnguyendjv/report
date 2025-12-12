@@ -2,15 +2,15 @@
 
 ## 📋 Tổng quan dự án
 
-**Dự án hiện đại hóa Dr.JOY Backend Framework**
+**Dự án hiện đại hóa Framework Backend Dr.JOY**
 
-Dự án này nhằm mục đích di chuyển dần `service-oauth2-server` và `service-framework` hiện tại sang một kiến trúc mới dựa trên JDK 17 / Spring Boot 3.
+Dự án này nhằm mục đích di chuyển dần dần `service-oauth2-server` và `service-framework` hiện tại sang một kiến trúc mới dựa trên JDK 17 / Spring Boot 3.
 
 ### 🎯 **Mục tiêu**
 - **Giải quyết nợ kỹ thuật**: Làm mới ngăn xếp công nghệ cũ và cấu trúc nguyên khối
-- **Vi mô hóa dịch vụ**: Tách biệt trách nhiệm và tăng cường tính độc lập
-- **Cải thiện khả năng vận hành**: Quản lý cấu hình động và triển khai linh hoạt
-- **Cải thiện khả năng bảo trì**: Thiết kế có thể kiểm thử và dễ mở rộng
+- **Chuyển đổi sang Microservice**: Tăng cường tách biệt trách nhiệm và tính độc lập
+- **Cải thiện khả năng vận hành**: Quản lý cấu hình động và linh hoạt hóa việc triển khai
+- **Cải thiện khả năng bảo trì**: Thiết kế dễ kiểm thử và mở rộng
 
 ### 📊 **Tình hình tiến độ hiện tại** (Hoàn thành 95%)
 - ✅ **Giai đoạn 1**: Nhóm thư viện lib-* → **Hoàn thành**
@@ -24,9 +24,9 @@ Dự án này nhằm mục đích di chuyển dần `service-oauth2-server` và 
 
 ### **Trước khi di chuyển (Hiện tại)**
 ```
-service-oauth2-server (ngăn xếp công nghệ cũ)
+service-oauth2-server (Ngăn xếp công nghệ cũ)
            ↓
-service-framework (thư viện chung nguyên khối)
+service-framework (Thư viện chung nguyên khối)
            ↓
 Các dịch vụ khác nhau (JDK 1.8, Spring Boot 2.x)
 ```
@@ -35,7 +35,7 @@ Các dịch vụ khác nhau (JDK 1.8, Spring Boot 2.x)
 ```
 service-security (JDK 17, Spring Boot 3)
            ↓
-Nhóm thư viện lib-* (tách biệt trách nhiệm)
+Nhóm thư viện lib-* (Tách biệt trách nhiệm)
 ├── lib-spring-boot-starter-grpc
 ├── lib-spring-boot-starter-security
 ├── lib-spring-boot-starter-mongodb
@@ -53,23 +53,20 @@ Các dịch vụ khác nhau (JDK 17, Spring Boot 3)
 
 | Tài liệu | Mô tả | Trạng thái |
 |---|---|---|
-| **[Danh sách công việc chi tiết](detailed_plan.md)** | Nội dung công việc cụ thể theo từng giai đoạn | ✅ Mới nhất |
-| **[Tài liệu thiết kế](architecture.md)** | Thiết kế chi tiết về kiến trúc kỹ thuật | ✅ Mới nhất |
+| **[Danh sách công việc chi tiết](../../../java-version-up-2025-12-12/renew-backend-framework/detailed_plan.md)** | Nội dung công việc cụ thể theo từng giai đoạn | ✅ Mới nhất |
+| **[Tài liệu thiết kế](../../../java-version-up-2025-12-12/renew-backend-framework/architecture.md)** | Thiết kế chi tiết về kiến trúc kỹ thuật | ✅ Mới nhất |
 | **[Báo cáo tiến độ lib-*](lib_projects_progress_report.md)** | Tình hình triển khai nhóm thư viện | ✅ Hoàn thành |
 | **[Hướng dẫn di chuyển dịch vụ](service_migration_guide.md)** | Quy trình di chuyển cho từng dịch vụ | ✅ Đang vận hành |
-| **[Danh sách kiểm tra di chuyển dịch vụ](service_migration_checklist.md)** | Các mục cần xác nhận khi di chuyển | ✅ Đang vận hành |
-| **[Hướng dẫn đồng bộ hóa masterdata](service-framework-masterdata-sync-guide.md)** | Quy trình đồng bộ hóa dữ liệu quyền hạn | ✅ Đang vận hành |
-| **[Chiến lược triển khai MongoDB](masterdata-deployment-strategy.md)** | Chính sách triển khai masterdata | ✅ Mới nhất |
-| **[Ước tính công sức](estimate.md)** | Công sức và lịch trình dự án | 📝 Tham khảo |
-| **[Biểu đồ Gantt](gantt-chart.md)** | Kế hoạch tiến độ dự án | 📝 Tham khảo |
+| **[Danh sách kiểm tra di chuyển dịch vụ](service_migration_checklist.md)** | Các mục cần kiểm tra khi di chuyển | ✅ Đang vận hành |
+| **[Hướng dẫn đồng bộ masterdata](../../../java-version-up-2025-12-12/renew-backend-framework/service-framework-masterdata-sync-guide.md)** | Quy trình đồng bộ dữ liệu quyền hạn | ✅ Đang vận hành |
+| **[Chiến lược triển khai MongoDB](../../../java-version-up-2025-12-12/renew-backend-framework/masterdata-deployment-strategy.md)** | Chính sách triển khai masterdata | ✅ Mới nhất |
+| **[Ước tính công sức](../../../java-version-up-2025-12-12/renew-backend-framework/estimate.md)** | Công sức và lịch trình dự án | 📝 Tham khảo |
+| **[Biểu đồ Gantt](../../../java-version-up-2025-12-12/renew-backend-framework/gantt-chart.md)** | Kế hoạch tiến độ dự án | 📝 Tham khảo |
 
 ### 🛠️ **Công cụ vận hành**
-| Tập lệnh | Mục đích |
+| Script | Mục đích |
 |---|---|
-| **[scripts/build-libs.sh](scripts/build-libs.sh)** | Xây dựng hàng loạt các thư viện lib-* |
-| **[scripts/sync-roles-to-mongodb.sh](scripts/sync-roles-to-mongodb.sh)** | Đồng bộ hóa quyền hạn từ service-framework→MongoDB |
-| **[scripts/dev-setup.sh](scripts/dev-setup.sh)** | Thiết lập môi trường phát triển |
-| **[scripts/health-check.sh](scripts/health-check.sh)** | Kiểm tra tình trạng dịch vụ |
+| **[scripts/sync-roles-to-mongodb.sh](../../../java-version-up-2025-12-12/renew-backend-framework/scripts/sync-roles-to-mongodb.sh)** | Đồng bộ quyền hạn từ service-framework sang MongoDB |
 
 ---
 
@@ -77,18 +74,18 @@ Các dịch vụ khác nhau (JDK 17, Spring Boot 3)
 
 ### **Xây dựng môi trường phát triển**
 ```bash
-# 1. Thiết lập tổng thể
-./scripts/dev-setup.sh
+# 1. Build thư viện lib-* (build theo thứ tự phụ thuộc)
+cd work/lib-common-utils && mvn clean install
+cd ../lib-common-models && mvn clean install
+cd ../lib-spring-boot-starter-mongodb && mvn clean install
+cd ../lib-spring-boot-starter-security && mvn clean install
+cd ../lib-spring-boot-starter-grpc && mvn clean install
+cd ../lib-spring-boot-starter-web && mvn clean install
+cd ../lib-spring-boot-starter-masterdata && mvn clean install
 
-# 2. Xây dựng thư viện lib-*
-./scripts/build-libs.sh
-
-# 3. Xây dựng service-security
-cd ../work/service-security
+# 2. Build service-security
+cd ../service-security
 mvn clean install
-
-# 4. Kiểm tra tình trạng
-./scripts/health-check.sh
 ```
 
 ### **Công việc di chuyển service-registration**
@@ -116,15 +113,15 @@ mvn spring-boot:run  # Xác nhận hoạt động
 
 **Thành quả**:
 - ✅ Hoàn thành triển khai tất cả 7 thư viện
-- ✅ Hỗ trợ Spring Boot 3.2.0 / JDK 17
+- ✅ Tương thích với Spring Boot 3.2.0 / JDK 17
 - ✅ Bộ kiểm thử toàn diện
 - ✅ Tích hợp CI/CD
 
 ### ✅ **Giai đoạn 2: Phát triển service-security** (Hoàn thành 95%)
 
 **Nội dung công việc**: Máy chủ OAuth2 mới dựa trên Spring Authorization Server
-- Triển khai 11 nhà cung cấp xác thực tùy chỉnh
-- Chữ ký JWT và trình tùy chỉnh mã thông báo
+- Triển khai 11 loại nhà cung cấp xác thực tùy chỉnh
+- Tùy biến chữ ký JWT và token
 - Tích hợp API Firebase/chứng chỉ
 - Triển khai dịch vụ gRPC
 
@@ -132,40 +129,40 @@ mvn spring-boot:run  # Xác nhận hoạt động
 - ✅ Hoàn thành triển khai 78 tệp và các chức năng cốt lõi
 - ✅ Hoàn thành triển khai nhóm nhà cung cấp xác thực
 - ✅ Hoàn thành triển khai các điểm cuối API khác nhau
-- 🔄 Đang trong quá trình kiểm thử tích hợp cuối cùng
+- 🔄 Đang trong giai đoạn kiểm thử tích hợp cuối cùng
 
 ### 🔄 **Giai đoạn 3: Di chuyển service-registration** (Hoàn thành 95%)
 
-**Nội dung công việc**: Di chuyển service-registration sang các thư viện mới làm trường hợp mẫu
+**Nội dung công việc**: Di chuyển service-registration sang thư viện mới làm trường hợp mẫu
 - Spring Boot 2.x → 3.2.0
 - JDK 1.8 → 17
 - Thay thế service-framework → lib-*
 
-**Tình hình hiện tại**:
+**Hiện trạng**:
 - ✅ Hoàn thành cập nhật pom.xml
 - ✅ Hoàn thành chuyển đổi javax→jakarta
-- ✅ Hoàn thành 95% việc di chuyển mã
+- ✅ Hoàn thành 95% việc di chuyển mã nguồn
 - 🔄 Điều chỉnh cuối cùng cho 2 tệp còn lại
 - 🔄 Thêm cấu hình OAuth2
 
-### ⏳ **Giai đoạn 4: Mở rộng sang các dịch vụ khác** (Đang chuẩn bị)
+### ⏳ **Giai đoạn 4: Triển khai cho các dịch vụ khác** (Đang chuẩn bị)
 
 **Dịch vụ mục tiêu**: `service-admin`, `service-web-front`, và tất cả các dịch vụ backend khác
-**Chiến lược**: Mở rộng tuần tự bằng cách tận dụng kiến thức từ service-registration
+**Chiến lược**: Triển khai tuần tự bằng cách tận dụng kiến thức từ service-registration
 
-Song song với đó, thực hiện chuyển đổi service-security
+Thực hiện chuyển đổi service-security song song.
 
 ---
 
-## ⚠️ Các điểm vận hành quan trọng
+## ⚠️ Những điểm vận hành quan trọng
 
 ### **🔄 Lưu ý trong giai đoạn vận hành song song**
 - service-framework và lib-* sẽ được vận hành song song trong thời gian tới
-- Khi thay đổi quyền hạn, hãy cập nhật cả hai theo [hướng dẫn đồng bộ hóa](service-framework-masterdata-sync-guide.md)
-- Việc triển khai MongoDB sẽ được sao chép vào mỗi DB dịch vụ theo [chiến lược triển khai](masterdata-deployment-strategy.md)
+- Khi thay đổi quyền hạn, hãy cập nhật cả hai theo [Hướng dẫn đồng bộ](../../../java-version-up-2025-12-12/renew-backend-framework/service-framework-masterdata-sync-guide.md)
+- Việc triển khai MongoDB sẽ được sao chép vào DB của từng dịch vụ theo [Chiến lược triển khai](../../../java-version-up-2025-12-12/renew-backend-framework/masterdata-deployment-strategy.md)
 
-### **🛡️ Chiến lược khôi phục**
-- Lấy bản sao lưu ở mỗi giai đoạn
+### **🛡️ Chiến lược khôi phục (rollback)**
+- Sao lưu ở mỗi giai đoạn
 - Làm việc trên nhánh feature/renew_framework
 - Giảm thiểu rủi ro bằng cách chuyển đổi theo từng giai đoạn
 
@@ -174,13 +171,13 @@ Song song với đó, thực hiện chuyển đổi service-security
 ## 🔧 Khắc phục sự cố
 
 ### **Các vấn đề thường gặp**
-1. **Không tìm thấy thư viện lib-***: Chạy `./scripts/build-libs.sh`
-2. **Lỗi quyền hạn**: Cập nhật masterdata bằng tập lệnh đồng bộ hóa
-3. **Lỗi khởi động**: Xác nhận cấu hình của JDK 17 và Spring Boot 3
+1. **Không tìm thấy thư viện lib-***: Build lib-* theo các bước trong "Xây dựng môi trường phát triển" ở trên
+2. **Lỗi quyền hạn**: Cập nhật masterdata bằng script đồng bộ
+3. **Lỗi khởi động**: Kiểm tra cấu hình JDK 17 và Spring Boot 3
 
 ### **Hỗ trợ**
-- Để biết thêm chi tiết, hãy tham khảo các tài liệu tương ứng
-- Trong trường hợp khẩn cấp, hãy thực hiện quy trình khôi phục
+- Tham khảo chi tiết trong từng tài liệu
+- Thực hiện quy trình khôi phục trong trường hợp khẩn cấp
 
 ---
 

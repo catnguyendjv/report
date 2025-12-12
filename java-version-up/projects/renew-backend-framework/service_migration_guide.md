@@ -1,7 +1,7 @@
 # Hướng dẫn di chuyển dịch vụ hiện có
-## Hướng dẫn thực hành di chuyển thư viện service-framework → lib-*
+## Sổ tay hướng dẫn thực hành di chuyển thư viện service-framework → lib-*
 
-Hướng dẫn này là một quy trình chung để di chuyển hiệu quả các microservice có cấu hình tương tự, dựa trên thành tích di chuyển của `service-registration` (hoàn thành 95%).
+Hướng dẫn này là một sổ tay hướng dẫn chung để di chuyển hiệu quả các microservice có cấu hình tương tự, dựa trên thành tích di chuyển của `service-registration` (hoàn thành 95%).
 
 ## 🏗️ Tổng quan về kiến trúc di chuyển
 
@@ -38,7 +38,7 @@ Microservice → lib-spring-boot-starter-* (Spring Boot 3.x, Java 17) → Các c
 
 ---
 
-## 📂 Giai đoạn 1: Chuẩn bị trước (Thời gian cần thiết: 30 phút)
+## 📂 Giai đoạn 1: Chuẩn bị trước (Thời gian ước tính: 30 phút)
 
 ### 1.1. Tạo nhánh và phân tích hiện trạng
 
@@ -62,20 +62,20 @@ grep -r "jp.drjoy.service.framework" src/ > framework_usage.txt
 - [ ] Kiểm tra phiên bản Spring Boot hiện tại
 - [ ] Kiểm tra phiên bản Java
 - [ ] Xác định các chức năng chính đang được sử dụng
-  - gRPC (Máy chủ/Máy khách)
-  - Kho lưu trữ MongoDB
+  - gRPC (Server/Client)
+  - MongoDB Repository
   - Cấu hình Spring Security
-  - Bộ điều khiển web
+  - Web Controllers
   - Quản lý dữ liệu chính
 
 ---
 
-## 📦 Giai đoạn 2: Cập nhật pom.xml (Thời gian cần thiết: 45 phút)
+## 📦 Giai đoạn 2: Cập nhật pom.xml (Thời gian ước tính: 45 phút)
 
 ### 2.1. Cập nhật phiên bản cơ bản
 
 ```xml
-<!-- Cập nhật POM gốc của Spring Boot -->
+<!-- Cập nhật POM cha của Spring Boot -->
 <parent>
   <groupId>org.springframework.boot</groupId>
   <artifactId>spring-boot-starter-parent</artifactId>
@@ -94,7 +94,7 @@ grep -r "jp.drjoy.service.framework" src/ > framework_usage.txt
 
 **Xóa service-framework:**
 ```xml
-<!-- Đối tượng cần xóa -->
+<!-- Đối tượng xóa -->
 <dependency>
   <groupId>jp.drjoy.service</groupId>
   <artifactId>service-framework</artifactId>
@@ -181,7 +181,7 @@ grep -r "jp.drjoy.service.framework" src/ > framework_usage.txt
 
 ---
 
-## 🔧 Giai đoạn 3: Sửa đổi mã (Thời gian cần thiết: 2-3 giờ)
+## 🔧 Giai đoạn 3: Sửa đổi mã nguồn (Thời gian ước tính: 2-3 giờ)
 
 ### 3.1. Thay thế hàng loạt tên gói
 
@@ -192,7 +192,7 @@ find src/ -name "*.java" -exec sed -i 's/javax\.validation\./jakarta.validation.
 find src/ -name "*.java" -exec sed -i 's/javax\.servlet\./jakarta.servlet./g' {} \;
 find src/ -name "*.java" -exec sed -i 's/javax\.transaction\./jakarta.transaction./g' {} \;
 
-# Thay thế hàng loạt import service-framework
+# Thay thế hàng loạt import của service-framework
 find src/ -name "*.java" -exec sed -i 's/jp\.drjoy\.service\.framework\.grpc\./jp.drjoy.lib.grpc./g' {} \;
 find src/ -name "*.java" -exec sed -i 's/jp\.drjoy\.service\.framework\.security\./jp.drjoy.lib.security./g' {} \;
 find src/ -name "*.java" -exec sed -i 's/jp\.drjoy\.service\.framework\.utils\./jp.drjoy.lib.utils./g' {} \;
@@ -200,9 +200,9 @@ find src/ -name "*.java" -exec sed -i 's/jp\.drjoy\.service\.framework\.model\./
 find src/ -name "*.java" -exec sed -i 's/jp\.drjoy\.service\.framework\.publisher\./jp.drjoy.lib.grpc./g' {} \;
 ```
 
-### 3.2. Hỗ trợ Spring Security 6
+### 3.2. Tương thích với Spring Security 6
 
-**Hỗ trợ loại bỏ WebSecurityConfigurerAdapter:**
+**Xử lý việc loại bỏ WebSecurityConfigurerAdapter:**
 
 ```java
 // Trước khi cập nhật
@@ -260,19 +260,19 @@ public class MongoConfig {
 }
 ```
 
-### 3.4. Các vị trí còn lại cần sửa đổi thủ công
+### 3.4. Các vị trí cần sửa đổi thủ công còn lại
 
 Sửa đổi riêng lẻ các mẫu sau được xác định bởi lỗi biên dịch:
 
 1. **Sử dụng các lớp/phương thức đã bị xóa**
-2. **Thay đổi enum để sử dụng dịch vụ dữ liệu chính**
-3. **Hỗ trợ thư viện mới cho lớp cấu hình gRPC**
+2. **Thay đổi việc sử dụng enum sang dịch vụ dữ liệu chính**
+3. **Tương thích lớp cấu hình gRPC với thư viện mới**
 
 ---
 
-## ⚙️ Giai đoạn 4: Cập nhật tệp cấu hình (Thời gian cần thiết: 30 phút)
+## ⚙️ Giai đoạn 4: Cập nhật tệp cấu hình (Thời gian ước tính: 30 phút)
 
-### 4.1. Hỗ trợ Spring Boot 3 cho application.yml
+### 4.1. Tương thích application.yml với Spring Boot 3
 
 **Cập nhật cấu hình cơ bản:**
 ```yaml
@@ -297,11 +297,11 @@ spring:
       uri: mongodb://localhost:27017/[DATABASE_NAME]
 ```
 
-### 4.2. Cấu hình xác thực (tùy theo loại dịch vụ)
+### 4.2. Cấu hình xác thực (theo loại dịch vụ)
 
-#### 4.2.1. Trường hợp dịch vụ API HTTP (cấu hình Máy chủ tài nguyên JWT)
+#### 4.2.1. Trường hợp dịch vụ API HTTP (cấu hình JWT Resource Server)
 
-Đối với các dịch vụ hiển thị các điểm cuối HTTP (service-web-front, service-admin, v.v.):
+Đối với các dịch vụ công khai các điểm cuối HTTP (service-web-front, service-admin, v.v.):
 
 ```yaml
 # Cấu hình để xác minh JWT
@@ -310,7 +310,7 @@ service:
     secret-public: ${OAUTH_SECRET_PUBLIC:secret/oauth2.pub}  # Đường dẫn khóa công khai JWT
     resource-id: ${OAUTH_RESOURCE_ID:demo}
 
-# Cấu hình Máy chủ tài nguyên Spring Security 6
+# Cấu hình Spring Security 6 Resource Server
 spring:
   security:
     oauth2:
@@ -326,48 +326,48 @@ spring:
 ```yaml
 # Xác thực gRPC được xử lý bởi GrpcAuthServerInterceptor
 # Không cần cấu hình máy khách OAuth2
-# Chỉ cấu hình Spring Security cơ bản
+# Chỉ cần cấu hình Spring Security cơ bản
 ```
 
 **Quan trọng**: Các dịch vụ gRPC sử dụng cơ chế xác thực gRPC riêng, do đó không cần thêm cấu hình máy khách OAuth2.
 
 ---
 
-## 🧪 Giai đoạn 5: Kiểm thử và xác minh (Thời gian cần thiết: 1-2 giờ)
+## 🧪 Giai đoạn 5: Kiểm tra và xác minh (Thời gian ước tính: 1-2 giờ)
 
-### 5.1. Xác nhận hoạt động theo từng giai đoạn
+### 5.1. Kiểm tra hoạt động theo từng giai đoạn
 
 ```bash
-# 1. Xác nhận giải quyết phụ thuộc
+# 1. Kiểm tra việc giải quyết các phụ thuộc
 mvn clean compile
 
-# 2. Chạy kiểm thử đơn vị
+# 2. Chạy các bài kiểm tra đơn vị
 mvn clean test
 
-# 3. Kiểm thử khởi động ứng dụng
+# 3. Kiểm tra khởi động ứng dụng
 mvn spring-boot:run
 ```
 
 ### 5.2. Các mục kiểm tra theo chức năng
 
 **Chức năng gRPC (nếu có):**
-- [ ] Xác nhận khởi động máy chủ gRPC
-- [ ] Xác nhận kết nối máy khách gRPC
-- [ ] Xác nhận hoạt động của bộ chặn
+- [ ] Kiểm tra khởi động máy chủ gRPC
+- [ ] Kiểm tra kết nối máy khách gRPC
+- [ ] Kiểm tra hoạt động của bộ chặn
 
 **Chức năng MongoDB (nếu có):**
-- [ ] Xác nhận kết nối cơ sở dữ liệu
-- [ ] Xác nhận hoạt động của kho lưu trữ
-- [ ] Xác nhận hoạt động của giao dịch
+- [ ] Kiểm tra kết nối cơ sở dữ liệu
+- [ ] Kiểm tra hoạt động của Repository
+- [ ] Kiểm tra hoạt động của giao dịch
 
-**Chức năng web (trường hợp dịch vụ API HTTP):**
-- [ ] Xác nhận phản hồi của bộ điều khiển
-- [ ] Xác nhận hoạt động xác thực và ủy quyền JWT
-- [ ] Xác nhận hoạt động của bộ lọc và bộ chặn
+**Chức năng Web (trường hợp dịch vụ API HTTP):**
+- [ ] Kiểm tra phản hồi của bộ điều khiển
+- [ ] Kiểm tra hoạt động xác thực và ủy quyền JWT
+- [ ] Kiểm tra hoạt động của bộ lọc và bộ chặn
 
-**Chức năng xác thực (tùy theo loại dịch vụ):**
-- [ ] **Dịch vụ API HTTP**: Xác nhận hoạt động của Máy chủ tài nguyên JWT
-- [ ] **Dịch vụ gRPC**: Xác nhận hoạt động của bộ chặn xác thực gRPC
+**Chức năng xác thực (theo loại dịch vụ):**
+- [ ] **Dịch vụ API HTTP**: Kiểm tra hoạt động của JWT Resource Server
+- [ ] **Dịch vụ gRPC**: Kiểm tra hoạt động của bộ chặn xác thực gRPC
 
 ---
 
@@ -377,7 +377,7 @@ mvn spring-boot:run
 - [ ] Tạo nhánh feature/renew_framework
 - [ ] Hoàn thành phân tích ngăn xếp công nghệ hiện tại
 - [ ] Hoàn thành việc xác định các chức năng được sử dụng
-- [ ] Xác định các phụ thuộc cần di chuyển
+- [ ] Xác định các phụ thuộc mục tiêu di chuyển
 
 ### Giai đoạn 2: Cập nhật pom.xml
 - [ ] Cập nhật Spring Boot 3.2.0
@@ -386,26 +386,26 @@ mvn spring-boot:run
 - [ ] Thêm các thư viện lib-* cần thiết
 - [ ] Cập nhật plugin Maven
 
-### Giai đoạn 3: Sửa đổi mã
+### Giai đoạn 3: Sửa đổi mã nguồn
 - [ ] Hoàn thành thay thế hàng loạt javax → jakarta
-- [ ] Hoàn thành thay thế hàng loạt import service-framework
-- [ ] Hoàn thành hỗ trợ Spring Security 6
+- [ ] Hoàn thành thay thế hàng loạt import của service-framework
+- [ ] Hoàn thành tương thích với Spring Security 6
 - [ ] Hoàn thành cập nhật cấu hình MongoDB
 - [ ] Hoàn thành giải quyết lỗi biên dịch
 
 ### Giai đoạn 4: Cập nhật cấu hình
-- [ ] Hỗ trợ Spring Boot 3 cho application.yml
-- [ ] Cấu hình xác thực tùy theo loại dịch vụ:
-  - [ ] **Dịch vụ API HTTP**: Cấu hình Máy chủ tài nguyên JWT
+- [ ] Tương thích application.yml với Spring Boot 3
+- [ ] Cấu hình xác thực phù hợp với loại dịch vụ:
+  - [ ] **Dịch vụ API HTTP**: Cấu hình JWT Resource Server
   - [ ] **Dịch vụ gRPC**: Chỉ cấu hình Spring Security cơ bản
-- [ ] Hoàn thành việc thêm cấu hình theo chức năng sử dụng
-- [ ] Hoàn thành việc xác nhận cấu hình theo môi trường
+- [ ] Hoàn thành thêm cấu hình theo chức năng sử dụng
+- [ ] Hoàn thành kiểm tra cấu hình theo môi trường
 
-### Giai đoạn 5: Kiểm thử và xác minh
+### Giai đoạn 5: Kiểm tra và xác minh
 - [ ] `mvn clean compile` thành công
 - [ ] `mvn clean test` thành công
 - [ ] `mvn spring-boot:run` khởi động thành công
-- [ ] Hoàn thành việc xác nhận hoạt động cơ bản của từng chức năng
+- [ ] Hoàn thành kiểm tra hoạt động cơ bản của từng chức năng
 
 ---
 
@@ -415,8 +415,8 @@ mvn spring-boot:run
 
 #### 1. Lỗi biên dịch: Không tìm thấy gói
 ```bash
-# Nguyên nhân: Bỏ sót thay thế javax → jakarta
-# Giải pháp: Kiểm tra các vị trí còn lại và sửa đổi thủ công
+# Nguyên nhân: Thiếu sót khi thay thế javax → jakarta
+# Giải pháp: Kiểm tra các vị trí còn lại và sửa thủ công
 find src/ -name "*.java" -exec grep -l "javax\." {} \;
 ```
 
@@ -434,9 +434,15 @@ Giải pháp: Thay đổi sang mẫu đơn giản hóa chỉ định nghĩa Bean
 
 #### 4. Lỗi phụ thuộc thư viện lib-*
 ```bash
-# Nguyên nhân: Các thư viện lib-* chưa được xây dựng
-# Giải pháp: Xây dựng trước tất cả các thư viện lib-*
-./scripts/build-libs.sh
+# Nguyên nhân: Thư viện lib-* chưa được build
+# Giải pháp: Build trước tất cả các thư viện lib-* theo thứ tự phụ thuộc
+cd work/lib-common-utils && mvn clean install
+cd ../lib-common-models && mvn clean install
+cd ../lib-spring-boot-starter-mongodb && mvn clean install
+cd ../lib-spring-boot-starter-security && mvn clean install
+cd ../lib-spring-boot-starter-grpc && mvn clean install
+cd ../lib-spring-boot-starter-web && mvn clean install
+cd ../lib-spring-boot-starter-masterdata && mvn clean install
 ```
 
 #### 5. Lỗi liên quan đến gRPC
@@ -458,31 +464,31 @@ grpc:
 - **Quy mô lớn** (100+ lớp): 5-7 ngày
 
 ### Nỗ lực bổ sung theo chức năng sử dụng
-- **Sử dụng gRPC**: +0,5 ngày
+- **Sử dụng gRPC**: +0.5 ngày
 - **API HTTP + Xác thực JWT**: +1 ngày
-- **Nhiều kho lưu trữ MongoDB**: +0,5 ngày
-- **Bộ lọc/bộ chặn tùy chỉnh**: +1 ngày
+- **Nhiều Repository MongoDB**: +0.5 ngày
+- **Bộ lọc và bộ chặn tùy chỉnh**: +1 ngày
 
 ### Cân nhắc bổ sung theo loại dịch vụ
-- **Dịch vụ API HTTP**: Cần cấu hình Máy chủ tài nguyên JWT
+- **Dịch vụ API HTTP**: Cần cấu hình JWT Resource Server
 - **Dịch vụ gRPC**: Không cần cấu hình OAuth2, chỉ cần cấu hình Spring Security cơ bản
 
 ---
 
-## 🎯 Chìa khóa thành công
+## 🎯 Điểm mấu chốt để thành công
 
 1. **Tuân thủ mẫu service-registration**: Dựa trên quy trình đã được chứng minh
 2. **Hiểu loại dịch vụ**: Nắm bắt sự khác biệt về phương thức xác thực giữa dịch vụ API HTTP và dịch vụ gRPC
 3. **Tiếp cận theo từng giai đoạn**: Tiến hành chắc chắn theo từng giai đoạn
 4. **Tận dụng tự động hóa**: Tích cực sử dụng các tập lệnh thay thế hàng loạt
-5. **Chuẩn bị trước các thư viện lib-***: Xây dựng trước các phụ thuộc
-6. **Xác minh liên tục**: Xác nhận từng giai đoạn theo thứ tự biên dịch → kiểm thử → khởi động
-7. **Xác nhận theo chức năng**: Thực hiện xác nhận hoạt động tùy theo các chức năng đang được sử dụng
+5. **Chuẩn bị trước các thư viện lib-***: Build trước các phụ thuộc
+6. **Xác minh liên tục**: Xác nhận từng giai đoạn theo thứ tự biên dịch → kiểm tra → khởi động
+7. **Kiểm tra theo chức năng**: Thực hiện kiểm tra hoạt động phù hợp với các chức năng đang được sử dụng
 
 ## ⚠️ Lưu ý quan trọng
 
 **Phân biệt cấu hình xác thực:**
-- **Dịch vụ API HTTP**: Cần cấu hình Máy chủ tài nguyên JWT
+- **Dịch vụ API HTTP**: Cần cấu hình JWT Resource Server
 - **Dịch vụ gRPC**: Không cần cấu hình OAuth2, sử dụng bộ chặn xác thực gRPC
 
 Bằng cách làm theo hướng dẫn này, bạn có thể di chuyển hiệu quả tương tự như service-registration. Vui lòng chọn và thực hiện phương thức xác thực phù hợp tùy theo đặc điểm và kiến trúc của từng dịch vụ.

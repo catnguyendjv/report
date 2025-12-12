@@ -5,22 +5,22 @@ gantt
     axisFormat %Y-%m-%d
     
     section Giai đoạn 1: Thiết kế lại và phân tách service-framework
-    Phân tách chức năng (Starter hóa)      :active, 2025-07-14, 15d
-    Loại bỏ enum (DB/Config hóa) :after Phân tách chức năng (Starter hóa), 10d
+    Phân tách chức năng (Starter hóa)      :active, task1, 2025-07-14, 15d
+    Loại bỏ enum (DB/Config hóa) :task2, after task1, 10d
     
-        section Giai đoạn 2: Phát triển service-security
-    Phát triển service-oauth2-server-new :after Loại bỏ enum (DB/Config hóa), 15d
+    section Giai đoạn 2: Phát triển service-security
+    Phát triển service-oauth2-server-new :task3, after task2, 15d
     
     section Giai đoạn 3: Di chuyển dịch vụ mẫu
-    Ánh xạ lại các phụ thuộc (sửa đổi pom.xml) :crit, after Phát triển service-oauth2-server-new, 2d
-    Di chuyển không gian tên và API (jakarta hóa)   :after Ánh xạ lại các phụ thuộc (sửa đổi pom.xml), 3d
-    Tái cấu trúc logic (thay thế enum) :after Di chuyển không gian tên và API (jakarta hóa), 3d
+    Ánh xạ lại các phụ thuộc (sửa đổi pom.xml) :crit, task4, after task3, 2d
+    Di chuyển không gian tên và API (jakarta hóa)   :task5, after task4, 3d
+    Tái cấu trúc logic (thay thế enum) :task6, after task5, 3d
     
     section Giai đoạn 4: Di chuyển máy khách
-    Di chuyển máy khách theo từng giai đoạn          :after Tái cấu trúc logic (thay thế enum), 10d
+    Di chuyển máy khách theo từng giai đoạn          :task7, after task6, 10d
     
     section Giai đoạn 5: Loại bỏ hệ thống cũ
-    Công việc loại bỏ hệ thống cũ            :milestone, after Di chuyển máy khách theo từng giai đoạn, 3d
+    Công việc loại bỏ hệ thống cũ            :milestone, task8, after task7, 3d
 
 ```
 

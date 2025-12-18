@@ -7,6 +7,9 @@
 - [ ] Kiểm tra ngăn xếp công nghệ hiện tại (phiên bản Spring Boot, phiên bản Java)
 - [ ] Xác định các chức năng được sử dụng của service-framework
 - [ ] Hoàn thành build trước các thư viện lib-*
+- [ ] Backup database và cấu hình hiện tại (nếu có thay đổi)
+- [ ] Xác định loại service: OAuth2 Server / API Service / gRPC Service
+- [ ] Đánh giá tác động migration đến downstream services
 
 ### Giai đoạn 1: Chuẩn bị môi trường
 - [ ] Tạo nhánh feature/renew_framework
@@ -14,8 +17,8 @@
 - [ ] Phân tích các vị trí sử dụng framework (`grep -r "jp.drjoy.service.framework"`)
 
 ### Giai đoạn 2: Cập nhật pom.xml
-- [ ] Phiên bản Spring Boot → 3.2.0
-- [ ] Phiên bản Java → 17
+- [ ] Phiên bản Spring Boot → 3.3.1
+- [ ] Phiên bản Java → 21
 - [ ] Xóa phụ thuộc service-framework
 - [ ] Thêm lib-common-utils
 - [ ] Thêm lib-common-models
@@ -26,6 +29,8 @@
   - [ ] lib-spring-boot-starter-grpc (khi sử dụng gRPC)
   - [ ] lib-spring-boot-starter-masterdata (khi sử dụng dữ liệu chính)
 - [ ] Cập nhật phiên bản plugin Maven
+- [ ] Lombok Cập nhật lên 1.18.30+
+- [ ] Protobuf Kiểm tra version 0.1.XXX-SNAPSHOT có tương thích
 
 ### Giai đoạn 3: Sửa đổi mã nguồn
 - [ ] Thực hiện thay thế hàng loạt gói javax → jakarta
@@ -36,6 +41,9 @@
 - [ ] Cập nhật cấu hình MongoDB:
   - [ ] AbstractMongoConfiguration → Định nghĩa Bean MongoClient
 - [ ] Sửa lỗi biên dịch riêng lẻ
+  - [ ] PathPatternParser mặc định: Kiểm tra các pattern matching
+  - [ ] Jackson ObjectMapper: Kiểm tra custom serializers/deserializers
+  - [ ] gRPC: Kiểm tra interceptor signatures có thay đổi không
 
 ### Giai đoạn 4: Cập nhật tệp cấu hình
 - [ ] Tương thích application.yml với Spring Boot 3
@@ -44,6 +52,10 @@
   - [ ] **Dịch vụ API HTTP**: Cấu hình JWT Resource Server
   - [ ] **Dịch vụ gRPC**: Chỉ cấu hình cơ bản (không cần cấu hình OAuth2)
 - [ ] Kiểm tra cấu hình theo môi trường
+- [ ] Properties Deprecation Check
+  - [ ] Chạy application với `--debug` để xem deprecated properties
+  - [ ] Fix các properties đã đổi tên hoặc bị xóa
+  - [ ] Kiểm tra `spring-configuration-metadata.json` nếu có custom properties
 
 ### Giai đoạn 5: Kiểm tra và xác minh
 - [ ] `mvn clean compile` thành công
@@ -60,6 +72,16 @@
   - [ ] **Dịch vụ API HTTP**: Liên kết JWT với service-security hoặc service-oauth2-server
   - [ ] **Dịch vụ gRPC**: Liên kết bộ chặn xác thực gRPC
 - [ ] Thực hiện kiểm tra hiệu năng
+
+### Giai đoạn 7: Docker & Deployment
+- [ ] Dockerfile Updates
+- [ ] CI/CD Pipeline Updates
+- [ ] Deployment Strategy
+- [ ] Pre-deployment Checks
+  - [ ] Backup database
+  - [ ] Run migration scripts (nếu có)
+  - [ ] Verify data integrity
+- [ ] Rollback Plan
 
 ---
 
@@ -314,6 +336,269 @@ public void testEndpoint() throws Exception {
 ```
 
 ---
+
+#### 13. Lỗi OAuth2 Authentication Provider
+```
+Ví dụ lỗi: No AuthenticationProvider found for ResourceOwnerPasswordAuthenticationToken
+```
+**Nguyên nhân**: Custom authentication provider chưa được đăng ký đúng với Spring Authorization Server
+**Giải pháp**:
+```java
+// Trong AuthorizationServerConfig
+http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
+    .tokenEndpoint(tokenEndpoint ->
+        tokenEndpoint
+            .accessTokenRequestConverters(converters ->
+                converters.add(new ResourceOwnerPasswordAuthenticationConverter()))
+            .authenticationProvider(new ResourceOwnerPasswordAuthenticationProvider(
+                authenticationManager, authorizationService, tokenGenerator,
+                clientRepository, authenticationTokenFactory))
+    );
+```
+
+#### 14. JWT Claims không xuất hiện trong token
+```
+Ví dụ lỗi: Expected claim 'user_id' not found in JWT
+```
+**Nguyên nhân**: OAuth2TokenCustomizer chưa được áp dụng hoặc logic customize có vấn đề
+**Giải pháp**:
+```java
+// Đảm bảo JwtTokenCustomizer được đánh dấu @Component
+@Component
+public class JwtTokenCustomizer implements OAuth2TokenCustomizer<JwtEncodingContext> {
+    @Override
+    public void customize(JwtEncodingContext context) {
+        if (context.getTokenType().getValue().equals("access_token")) {
+            // Add custom claims
+            context.getClaims().claim("user_id", userId);
+        }
+    }
+}
+
+// Và tokenGenerator được config với customizer
+@Bean
+public OAuth2TokenGenerator<?> tokenGenerator(
+        JWKSource<SecurityContext> jwkSource,
+        @Autowired(required = false) OAuth2TokenCustomizer<JwtEncodingContext> jwtCustomizer) {
+    JwtGenerator jwtGenerator = new JwtGenerator(new NimbusJwtEncoder(jwkSource));
+    if (jwtCustomizer != null) {
+        jwtGenerator.setJwtCustomizer(jwtCustomizer);
+    }
+    return jwtGenerator;
+}
+```
+
+#### 15. gRPC Interceptor không hoạt động
+```
+Ví dụ lỗi: Authentication required but no token found in metadata
+```
+**Nguyên nhân**: Interceptor chưa được đăng ký hoặc order không đúng
+**Giải pháp**:
+```java
+// Server interceptor
+@GrpcService
+public class MyGrpcService extends MyServiceGrpc.MyServiceImplBase {
+    // Service implementation
+}
+
+// Đảm bảo GrpcAuthServerInterceptor từ lib-spring-boot-starter-security được auto-configured
+// Hoặc đăng ký thủ công:
+@Configuration
+public class GrpcConfig {
+    @Bean
+    public GlobalServerInterceptorConfigurer authInterceptor(GrpcAuthServerInterceptor interceptor) {
+        return registry -> registry.addServerInterceptors(interceptor);
+    }
+}
+```
+
+#### 16. Lỗi "aud claim is not a JSON array"
+```
+Ví dụ lỗi: Legacy services expect aud as array but getting string
+```
+**Nguyên nhân**: Spring Authorization Server mặc định tạo aud là string, legacy services cần array
+**Giải pháp**:
+```java
+// Sử dụng LegacyCompatibleJwtEncoder
+@Bean
+public OAuth2TokenGenerator<?> tokenGenerator(JWKSource<SecurityContext> jwkSource) {
+    // Custom encoder converts aud to array for backward compatibility
+    JwtEncoder jwtEncoder = new LegacyCompatibleJwtEncoder(jwkSource);
+    JwtGenerator jwtGenerator = new JwtGenerator(jwtEncoder);
+    return jwtGenerator;
+}
+
+// LegacyCompatibleJwtEncoder implementation in service-security
+```
+
+#### 17. Lỗi client authentication với {noop} prefix
+```
+Ví dụ lỗi: Client authentication failed - password mismatch
+```
+**Nguyên nhân**: PasswordEncoder không xử lý {noop} prefix đúng
+**Giải pháp**:
+```java
+// Sử dụng DelegatingPasswordEncoder với {noop} support
+@Bean
+public PasswordEncoder passwordEncoder() {
+    return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+}
+
+// Và configure ClientSecretAuthenticationProvider
+private Consumer<List<AuthenticationProvider>> configureClientAuthenticationProviders() {
+    return authenticationProviders -> {
+        for (AuthenticationProvider provider : authenticationProviders) {
+            if (provider instanceof ClientSecretAuthenticationProvider) {
+                ((ClientSecretAuthenticationProvider) provider)
+                    .setPasswordEncoder(passwordEncoder);
+            }
+        }
+    };
+}
+```
+
+#### 18. Lỗi MongoDB Index creation
+```
+Ví dụ lỗi: Index already exists with different options
+```
+**Nguyên nhân**: Index definition thay đổi nhưng index cũ vẫn tồn tại
+**Giải pháp**:
+```bash
+# Connect to MongoDB và drop index cũ
+mongo
+use your_database
+db.your_collection.dropIndex("index_name")
+
+# Hoặc trong code, drop và recreate
+@Configuration
+public class MongoIndexConfig implements InitializingBean {
+    @Autowired
+    private MongoTemplate mongoTemplate;
+    
+    @Override
+    public void afterPropertiesSet() {
+        // Drop old index if exists
+        try {
+            mongoTemplate.indexOps(User.class).dropIndex("old_index");
+        } catch (Exception e) {
+            // Ignore if not exists
+        }
+        
+        // Create new index
+        mongoTemplate.indexOps(User.class).ensureIndex(
+            new Index().on("field", Sort.Direction.ASC).unique()
+        );
+    }
+}
+```
+
+#### 19. Lỗi PathPattern không khớp
+```
+Ví dụ lỗi: Endpoint /api/users/{id} không match với PathPatternParser
+```
+**Nguyên nhân**: Spring Boot 3 dùng PathPatternParser thay vì AntPathMatcher
+**Giải pháp**:
+```java
+// OLD pattern (AntPathMatcher)
+"/api/users/**"  // Match /api/users/1/profile
+
+// NEW pattern (PathPatternParser) - tương tự nhưng strict hơn
+"/api/users/**"  // Vẫn work nhưng có thể cần adjust
+"/api/users/{id}"  // Exact match
+"/api/users/{id}/**"  // Match sub-paths
+
+// Nếu vẫn muốn dùng AntPathMatcher (không khuyến nghị):
+@Configuration
+public class WebMvcConfig implements WebMvcConfigurer {
+    @Override
+    public void configurePathMatch(PathMatchConfigurer configurer) {
+        configurer.setPatternParser(null); // Disable PathPatternParser
+        configurer.setPathMatcher(new AntPathMatcher());
+    }
+}
+```
+
+#### 20. Lỗi Java 17/21 module system
+```
+Ví dụ lỗi: IllegalAccessError: class X cannot access class Y (module java.base)
+```
+**Nguyên nhân**: Java 9+ module system restrictions
+**Giải pháp**:
+```bash
+# Thêm JVM flags để open modules (development only)
+--add-opens java.base/java.lang=ALL-UNNAMED
+--add-opens java.base/java.util=ALL-UNNAMED
+
+# Trong pom.xml surefire plugin
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-surefire-plugin</artifactId>
+    <configuration>
+        <argLine>
+            --add-opens java.base/java.lang=ALL-UNNAMED
+            --add-opens java.base/java.util=ALL-UNNAMED
+        </argLine>
+    </configuration>
+</plugin>
+
+# Long-term: Fix code để không rely on reflection vào internal classes
+```
+
+#### 21. Lỗi Protobuf version incompatibility
+```
+Ví dụ lỗi: com.google.protobuf.GeneratedMessageV3 not found
+```
+**Nguyên nhân**: gRPC và Protobuf versions không compatible với Java 17/21
+**Giải pháp**:
+```xml
+<!-- Trong pom.xml, đảm bảo versions tương thích -->
+<properties>
+    <grpc.version>1.64.0</grpc.version>
+    <protobuf.version>3.25.3</protobuf.version>
+</properties>
+
+<dependency>
+    <groupId>io.grpc</groupId>
+    <artifactId>grpc-netty</artifactId>
+    <version>${grpc.version}</version>
+</dependency>
+<dependency>
+    <groupId>com.google.protobuf</groupId>
+    <artifactId>protobuf-java</artifactId>
+    <version>${protobuf.version}</version>
+</dependency>
+```
+
+#### 22. Masterdata không load được
+```
+Ví dụ lỗi: RoleMasterService returns empty roles
+```
+**Nguyên nhân**: Masterdata collection chưa được populate hoặc cache chưa refresh
+**Giải pháp**:
+```java
+// Kiểm tra MongoDB có data không
+db.master_data.find({ type: "ROLE" })
+
+// Force refresh cache
+@Autowired
+private MasterDataCacheService masterDataCacheService;
+
+public void refreshMasterData() {
+    masterDataCacheService.refreshCache();
+}
+
+// Hoặc thêm data initialization service
+@Service
+public class DataInitializationService implements ApplicationRunner {
+    @Override
+    public void run(ApplicationArguments args) {
+        if (masterDataRepository.count() == 0) {
+            // Load default master data
+            seedDefaultMasterData();
+        }
+    }
+}
+```
 
 ## 🚨 Xử lý khẩn cấp
 

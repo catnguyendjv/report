@@ -453,7 +453,26 @@ grpc:
   server:
     port: [số cổng không được sử dụng]
 ```
+#### 6. Một số khai báo hoặc hàm không còn sử dụng được nữa
+  ```java
+  1. new Sort ==> Sort.by
+  2. List<Pair<Query, Update>> ==> List<Pair<Query, UpdateDefinition>>
+  3. StreamUtils.createStreamFromIterator(mongoTemplate.stream(query, class)) ==> StreamUtils.createStreamFromIterator(mongoTemplate.stream(query, class).iterator())
+  4. query.with(new PageRequest()) ==> query.with(PageRequest.of())
+  5. new MongoClient(new MongoClientURI(props.getUri())) ==> MongoClients.create(props.getUri())
+  6. .map(ATCalculateOverTimeBatchResult.Builder::build) ==> .map(builder -> builder.build())
+  7. import javax.validation.constraints.NotBlank ==> import jakarta.validation.constraints.NotBlank
+  8. application.yml : spring.profiles ==> spring.config.activate.on-profile
+  9. mongoCollection.find(BSON.class) ==> mongoCollection.find(Document.class)
+  10. Mockito.verifyZeroInteractions ==> Mockito.verifyNoInteractions
+  11. Mockito.anyListOf(String.class) ==> Mockito.anyList()
+  ```
 
+#### 7. PowerMock gây lỗi trong JUnit khi nâng cấp lên Java 21 do không tương thích với phiên bản Java này.
+  ```java
+  1. Loại bỏ powermock ở file pom, thay thế bằng mockito version 5.2
+  2. Sửa lại các class Unit test đang sử dụng powermock.
+  ```
 ---
 
 ## 📊 Hướng dẫn ước tính nỗ lực di chuyển

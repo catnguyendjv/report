@@ -12,7 +12,7 @@ Microservice → service-framework (Spring Boot 2.x, Java 8/11) → Các chức 
 
 ### Sau khi di chuyển (Mục tiêu)
 ```
-Microservice → lib-spring-boot-starter-* (Spring Boot 3.x, Java 17) → Các chức năng khác nhau
+Microservice → lib-spring-boot-starter-* (Spring Boot 3.3.1, Java 21) → Các chức năng khác nhau
 ```
 
 ### Cấu hình thư viện mới
@@ -79,14 +79,14 @@ grep -r "jp.drjoy.service.framework" src/ > framework_usage.txt
 <parent>
   <groupId>org.springframework.boot</groupId>
   <artifactId>spring-boot-starter-parent</artifactId>
-  <version>3.2.0</version>
+  <version>3.3.1</version>
 </parent>
 
 <!-- Cập nhật phiên bản Java -->
 <properties>
-  <java.version>17</java.version>
-  <maven.compiler.source>17</maven.compiler.source>
-  <maven.compiler.target>17</maven.compiler.target>
+  <java.version>21</java.version>
+  <maven.compiler.source>21</maven.compiler.source>
+  <maven.compiler.target>21</maven.compiler.target>
 </properties>
 ```
 
@@ -167,7 +167,7 @@ grep -r "jp.drjoy.service.framework" src/ > framework_usage.txt
       <artifactId>maven-compiler-plugin</artifactId>
       <version>${maven-compiler-plugin.version}</version>
       <configuration>
-        <release>17</release>
+        <release>21</release>
       </configuration>
     </plugin>
     <plugin>
@@ -380,8 +380,8 @@ mvn spring-boot:run
 - [ ] Xác định các phụ thuộc mục tiêu di chuyển
 
 ### Giai đoạn 2: Cập nhật pom.xml
-- [ ] Cập nhật Spring Boot 3.2.0
-- [ ] Cập nhật Java 17
+- [ ] Cập nhật Spring Boot 3.3.1
+- [ ] Cập nhật Java 21
 - [ ] Xóa phụ thuộc service-framework
 - [ ] Thêm các thư viện lib-* cần thiết
 - [ ] Cập nhật plugin Maven
